@@ -8,9 +8,10 @@ import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
-import { CalendarIcon, Heart, Sparkles, ArrowRight, ArrowLeft, User, MapPin } from 'lucide-react';
+import { CalendarIcon, Heart, Sparkles, ArrowRight, ArrowLeft, User, MapPin, Camera } from 'lucide-react';
+import { PhotoUpload } from './PhotoUpload';
 
-type SetupStep = 'couple' | 'date' | 'venue' | 'complete';
+type SetupStep = 'couple' | 'photos' | 'date' | 'venue' | 'complete';
 
 export function WeddingSetup() {
   const { setWedding } = useWedding();
@@ -18,6 +19,8 @@ export function WeddingSetup() {
   const [formData, setFormData] = useState({
     brideName: '',
     groomName: '',
+    bridePhoto: undefined as string | undefined,
+    groomPhoto: undefined as string | undefined,
     weddingDate: undefined as Date | undefined,
     venue: '',
     brideParents: '',
@@ -31,6 +34,8 @@ export function WeddingSetup() {
       id: crypto.randomUUID(),
       brideName: formData.brideName,
       groomName: formData.groomName,
+      bridePhoto: formData.bridePhoto,
+      groomPhoto: formData.groomPhoto,
       weddingDate: formData.weddingDate,
       venue: formData.venue,
       brideParents: formData.brideParents,
@@ -54,6 +59,8 @@ export function WeddingSetup() {
     switch (step) {
       case 'couple':
         return formData.brideName.trim() && formData.groomName.trim();
+      case 'photos':
+        return true; // Photos are optional
       case 'date':
         return formData.weddingDate;
       case 'venue':
@@ -64,17 +71,19 @@ export function WeddingSetup() {
   };
 
   const nextStep = () => {
-    if (step === 'couple') setStep('date');
+    if (step === 'couple') setStep('photos');
+    else if (step === 'photos') setStep('date');
     else if (step === 'date') setStep('venue');
     else if (step === 'venue') handleComplete();
   };
 
   const prevStep = () => {
-    if (step === 'date') setStep('couple');
+    if (step === 'photos') setStep('couple');
+    else if (step === 'date') setStep('photos');
     else if (step === 'venue') setStep('date');
   };
 
-  const stepNumber = step === 'couple' ? 1 : step === 'date' ? 2 : 3;
+  const stepNumber = step === 'couple' ? 1 : step === 'photos' ? 2 : step === 'date' ? 3 : 4;
 
   return (
     <div className="min-h-screen bg-gradient-blush pattern-floral flex items-center justify-center p-4">
@@ -94,7 +103,7 @@ export function WeddingSetup() {
 
         {/* Progress */}
         <div className="flex items-center justify-center gap-2 mb-8">
-          {[1, 2, 3].map((num) => (
+          {[1, 2, 3, 4].map((num) => (
             <div
               key={num}
               className={cn(
@@ -157,6 +166,36 @@ export function WeddingSetup() {
                   />
                 </div>
               </div>
+            </div>
+          )}
+
+          {/* Step: Photos */}
+          {step === 'photos' && (
+            <div className="space-y-6">
+              <div className="text-center mb-6">
+                <Camera className="w-6 h-6 text-secondary mx-auto mb-2" />
+                <h2 className="font-display text-xl text-foreground">Beautiful Memories</h2>
+                <p className="text-sm text-muted-foreground mt-1">Add photos for your invitation cards (optional)</p>
+              </div>
+
+              <div className="flex justify-center gap-8">
+                <PhotoUpload
+                  label="Bride"
+                  sublabel="वधू"
+                  value={formData.bridePhoto}
+                  onChange={(photo) => setFormData({ ...formData, bridePhoto: photo })}
+                />
+                <PhotoUpload
+                  label="Groom"
+                  sublabel="वर"
+                  value={formData.groomPhoto}
+                  onChange={(photo) => setFormData({ ...formData, groomPhoto: photo })}
+                />
+              </div>
+
+              <p className="text-xs text-center text-muted-foreground mt-4">
+                Photos will appear on your invitation cards • Max 5MB each
+              </p>
             </div>
           )}
 
