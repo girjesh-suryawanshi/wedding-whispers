@@ -2,8 +2,9 @@ import React, { useState, useRef } from 'react';
 import { useWedding } from '@/contexts/WeddingContext';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { format } from 'date-fns';
-import { Download, Share2, Heart, Sparkles } from 'lucide-react';
+import { Download, Share2, Heart, Sparkles, User } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 type Language = 'english' | 'hindi' | 'bilingual';
@@ -148,8 +149,34 @@ export function InvitationCard() {
                   {language === 'hindi' ? 'के शुभ विवाह में' : 'Request the pleasure of your company'}
                 </p>
 
-                {/* Couple Names */}
+                {/* Couple Photos & Names */}
                 <div className="my-6">
+                  {/* Photos */}
+                  {(wedding.bridePhoto || wedding.groomPhoto) && (
+                    <div className="flex items-center justify-center gap-4 mb-4">
+                      <Avatar className="w-20 h-20 border-2 border-secondary shadow-lg">
+                        {wedding.bridePhoto ? (
+                          <AvatarImage src={wedding.bridePhoto} alt={wedding.brideName} className="object-cover" />
+                        ) : (
+                          <AvatarFallback className="bg-accent">
+                            <User className="w-8 h-8 text-muted-foreground" />
+                          </AvatarFallback>
+                        )}
+                      </Avatar>
+                      <Heart className="w-6 h-6 text-secondary" fill="currentColor" />
+                      <Avatar className="w-20 h-20 border-2 border-secondary shadow-lg">
+                        {wedding.groomPhoto ? (
+                          <AvatarImage src={wedding.groomPhoto} alt={wedding.groomName} className="object-cover" />
+                        ) : (
+                          <AvatarFallback className="bg-accent">
+                            <User className="w-8 h-8 text-muted-foreground" />
+                          </AvatarFallback>
+                        )}
+                      </Avatar>
+                    </div>
+                  )}
+
+                  {/* Names */}
                   <h3 className={cn("font-display text-3xl", styleConfig.accent)}>
                     {wedding.brideName}
                   </h3>
