@@ -5,10 +5,12 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Download, Share2, Phone, Mail, MessageSquare, ChevronDown, ChevronUp } from 'lucide-react';
+import { Download, Share2, Phone, Mail, MessageSquare, ChevronDown, ChevronUp, Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { TemplateStyle, TEMPLATE_LIST } from './invitation/templateConfig';
 import { InvitationPreview } from './invitation/InvitationPreview';
+import html2canvas from 'html2canvas';
+import { toast } from 'sonner';
 
 type Language = 'english' | 'hindi' | 'bilingual';
 
@@ -17,12 +19,39 @@ export function InvitationCard() {
   const [language, setLanguage] = useState<Language>('bilingual');
   const [selectedTemplate, setSelectedTemplate] = useState<TemplateStyle>('rajasthani');
   const [showCustomization, setShowCustomization] = useState(false);
+  const [isDownloading, setIsDownloading] = useState(false);
   const cardRef = useRef<HTMLDivElement>(null);
 
   if (!wedding) return null;
 
   const handleDownload = async () => {
-    alert('Download feature will generate a high-quality PNG image of your invitation card.');
+    if (!cardRef.current) {
+      toast.error('Unable to capture invitation card');
+      return;
+    }
+
+    setIsDownloading(true);
+    try {
+      const canvas = await html2canvas(cardRef.current, {
+        scale: 3, // High resolution
+        useCORS: true,
+        allowTaint: true,
+        backgroundColor: null,
+        logging: false,
+      });
+
+      const link = document.createElement('a');
+      link.download = `${wedding.brideName}-${wedding.groomName}-invitation.png`;
+      link.href = canvas.toDataURL('image/png', 1.0);
+      link.click();
+      
+      toast.success('Invitation downloaded successfully!');
+    } catch (error) {
+      console.error('Download error:', error);
+      toast.error('Failed to download. Please try again.');
+    } finally {
+      setIsDownloading(false);
+    }
   };
 
   const handleShare = async () => {
@@ -160,9 +189,13 @@ export function InvitationCard() {
 
       {/* Actions */}
       <div className="flex flex-col sm:flex-row gap-3">
-        <Button onClick={handleDownload} className="flex-1 btn-royal">
-          <Download className="w-4 h-4 mr-2" />
-          Download PNG
+        <Button onClick={handleDownload} disabled={isDownloading} className="flex-1 btn-royal">
+          {isDownloading ? (
+            <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+          ) : (
+            <Download className="w-4 h-4 mr-2" />
+          )}
+          {isDownloading ? 'Generating...' : 'Download PNG'}
         </Button>
         <Button onClick={handleShare} variant="outline" className="flex-1">
           <Share2 className="w-4 h-4 mr-2" />
