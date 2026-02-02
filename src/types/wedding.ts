@@ -27,6 +27,9 @@ export interface WeddingDetails {
   groomPhoto?: string;
   brideParents?: string;
   groomParents?: string;
+  rsvpPhone?: string;
+  rsvpEmail?: string;
+  customMessage?: string;
   events: WeddingEvent[];
   createdAt: Date;
 }
