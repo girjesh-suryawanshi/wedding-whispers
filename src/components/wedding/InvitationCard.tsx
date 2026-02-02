@@ -1,8 +1,11 @@
 import React, { useState, useRef } from 'react';
 import { useWedding } from '@/contexts/WeddingContext';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Download, Share2 } from 'lucide-react';
+import { Download, Share2, Phone, Mail, MessageSquare, ChevronDown, ChevronUp } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { TemplateStyle, TEMPLATE_LIST } from './invitation/templateConfig';
 import { InvitationPreview } from './invitation/InvitationPreview';
@@ -10,9 +13,10 @@ import { InvitationPreview } from './invitation/InvitationPreview';
 type Language = 'english' | 'hindi' | 'bilingual';
 
 export function InvitationCard() {
-  const { wedding } = useWedding();
+  const { wedding, updateWedding } = useWedding();
   const [language, setLanguage] = useState<Language>('bilingual');
   const [selectedTemplate, setSelectedTemplate] = useState<TemplateStyle>('rajasthani');
+  const [showCustomization, setShowCustomization] = useState(false);
   const cardRef = useRef<HTMLDivElement>(null);
 
   if (!wedding) return null;
@@ -62,6 +66,78 @@ export function InvitationCard() {
             </button>
           ))}
         </div>
+      </div>
+
+      {/* Customization Panel */}
+      <div className="border border-border rounded-lg overflow-hidden">
+        <button
+          onClick={() => setShowCustomization(!showCustomization)}
+          className="w-full flex items-center justify-between p-4 bg-muted/30 hover:bg-muted/50 transition-colors"
+        >
+          <div className="flex items-center gap-2">
+            <MessageSquare className="w-4 h-4 text-primary" />
+            <span className="font-medium text-sm text-foreground">RSVP & Custom Message</span>
+          </div>
+          {showCustomization ? (
+            <ChevronUp className="w-4 h-4 text-muted-foreground" />
+          ) : (
+            <ChevronDown className="w-4 h-4 text-muted-foreground" />
+          )}
+        </button>
+        
+        {showCustomization && (
+          <div className="p-4 space-y-4 border-t border-border">
+            {/* RSVP Contact */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="rsvpPhone" className="flex items-center gap-2 text-sm">
+                  <Phone className="w-3 h-3" />
+                  RSVP Phone
+                </Label>
+                <Input
+                  id="rsvpPhone"
+                  type="tel"
+                  placeholder="+91 98765 43210"
+                  value={wedding.rsvpPhone || ''}
+                  onChange={(e) => updateWedding({ rsvpPhone: e.target.value })}
+                  className="text-sm"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="rsvpEmail" className="flex items-center gap-2 text-sm">
+                  <Mail className="w-3 h-3" />
+                  RSVP Email
+                </Label>
+                <Input
+                  id="rsvpEmail"
+                  type="email"
+                  placeholder="rsvp@wedding.com"
+                  value={wedding.rsvpEmail || ''}
+                  onChange={(e) => updateWedding({ rsvpEmail: e.target.value })}
+                  className="text-sm"
+                />
+              </div>
+            </div>
+
+            {/* Custom Message */}
+            <div className="space-y-2">
+              <Label htmlFor="customMessage" className="text-sm">
+                Custom Message (optional)
+              </Label>
+              <Textarea
+                id="customMessage"
+                placeholder="Add a personal touch... e.g., 'Your presence is the greatest gift we could receive'"
+                value={wedding.customMessage || ''}
+                onChange={(e) => updateWedding({ customMessage: e.target.value })}
+                className="text-sm min-h-[80px] resize-none"
+                maxLength={150}
+              />
+              <p className="text-xs text-muted-foreground text-right">
+                {(wedding.customMessage?.length || 0)}/150
+              </p>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Language Tabs */}

@@ -4,7 +4,7 @@ import { TemplateStyle, TEMPLATE_CONFIGS } from './templateConfig';
 import { TemplateDecorations } from './TemplateDecorations';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { format } from 'date-fns';
-import { Heart, User } from 'lucide-react';
+import { Heart, User, Phone, Mail } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 type Language = 'english' | 'hindi' | 'bilingual';
@@ -185,6 +185,42 @@ export function InvitationPreview({ wedding, template, language, cardRef }: Invi
           <p className={cn("text-xs font-hindi mt-2", config.secondaryTextColor)}>
             {format(new Date(wedding.weddingDate), "d MMMM, yyyy")}
           </p>
+        )}
+
+        {/* Custom Message */}
+        {wedding.customMessage && (
+          <p className={cn(
+            "text-[10px] italic mt-3 px-4 leading-relaxed",
+            config.secondaryTextColor
+          )}>
+            "{wedding.customMessage}"
+          </p>
+        )}
+
+        {/* RSVP Section */}
+        {(wedding.rsvpPhone || wedding.rsvpEmail) && (
+          <div className={cn(
+            "mt-3 pt-2 border-t w-full",
+            isLightTemplate ? "border-amber-300/50" : "border-blue-400/30"
+          )}>
+            <p className={cn("text-[10px] uppercase tracking-wider mb-1", config.secondaryTextColor)}>
+              {language === 'hindi' ? 'संपर्क करें' : 'RSVP'}
+            </p>
+            <div className="flex items-center justify-center gap-3 flex-wrap">
+              {wedding.rsvpPhone && (
+                <span className={cn("flex items-center gap-1 text-[10px]", config.textColor)}>
+                  <Phone className="w-2.5 h-2.5" />
+                  {wedding.rsvpPhone}
+                </span>
+              )}
+              {wedding.rsvpEmail && (
+                <span className={cn("flex items-center gap-1 text-[10px]", config.textColor)}>
+                  <Mail className="w-2.5 h-2.5" />
+                  {wedding.rsvpEmail}
+                </span>
+              )}
+            </div>
+          </div>
         )}
       </div>
     </div>
