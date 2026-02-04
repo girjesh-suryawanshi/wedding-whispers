@@ -1,10 +1,13 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { Heart, Sparkles, CalendarDays, Download, Globe } from 'lucide-react';
+import { Heart, Sparkles, CalendarDays, Download, Globe, LogIn, UserPlus } from 'lucide-react';
 import heroImage from '@/assets/hero-wedding-bg.jpg';
+import { useAuth } from '@/contexts/AuthContext';
 
 export function LandingPage() {
+  const { user, signOut } = useAuth();
+
   return (
     <div className="min-h-screen bg-background">
       {/* Hero Section */}
@@ -52,17 +55,41 @@ export function LandingPage() {
             Create stunning countdown images, manage your events, and generate beautiful wedding invitations in Hindi, English, or both.
           </p>
 
-          {/* CTA Button */}
+          {/* CTA Buttons */}
           <div className="animate-fade-in-up" style={{ animationDelay: '0.4s' }}>
-            <Link to="/create">
-              <Button className="btn-gold text-lg h-14 px-10 text-foreground font-semibold">
-                <Heart className="w-5 h-5 mr-2" fill="currentColor" />
-                Create Your Wedding
-              </Button>
-            </Link>
-            <p className="text-primary-foreground/50 text-sm mt-4">
-              Free • No login required • Takes 3 minutes
-            </p>
+            {user ? (
+              <div className="space-y-4">
+                <Link to="/create">
+                  <Button className="btn-gold text-lg h-14 px-10 text-foreground font-semibold">
+                    <Heart className="w-5 h-5 mr-2" fill="currentColor" />
+                    Go to Dashboard
+                  </Button>
+                </Link>
+                <p className="text-primary-foreground/50 text-sm">
+                  Welcome back! • <button onClick={() => signOut()} className="underline hover:text-primary-foreground">Sign out</button>
+                </p>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                <div className="flex flex-col sm:flex-row gap-3 justify-center">
+                  <Link to="/auth?tab=signup">
+                    <Button className="btn-gold text-lg h-14 px-10 text-foreground font-semibold">
+                      <UserPlus className="w-5 h-5 mr-2" />
+                      Get Started Free
+                    </Button>
+                  </Link>
+                  <Link to="/auth?tab=signin">
+                    <Button variant="outline" className="text-lg h-14 px-8 bg-primary-foreground/10 border-primary-foreground/30 text-primary-foreground hover:bg-primary-foreground/20">
+                      <LogIn className="w-5 h-5 mr-2" />
+                      Sign In
+                    </Button>
+                  </Link>
+                </div>
+                <p className="text-primary-foreground/50 text-sm">
+                  Free forever • Sync across devices • Takes 3 minutes
+                </p>
+              </div>
+            )}
           </div>
         </div>
 
