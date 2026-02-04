@@ -1,5 +1,7 @@
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useEffect, ReactNode, useCallback } from 'react';
 import { WeddingDetails, WeddingEvent } from '@/types/wedding';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from './AuthContext';
 
 interface WeddingContextType {
   wedding: WeddingDetails | null;
@@ -11,93 +13,294 @@ interface WeddingContextType {
   reorderEvents: (events: WeddingEvent[]) => void;
   isSetupComplete: boolean;
   resetWedding: () => void;
+  loading: boolean;
+  saveWedding: (wedding: WeddingDetails) => Promise<void>;
 }
 
 const WeddingContext = createContext<WeddingContextType | undefined>(undefined);
 
-const STORAGE_KEY = 'wedding-celebration-data';
-
 export function WeddingProvider({ children }: { children: ReactNode }) {
+  const { user } = useAuth();
   const [wedding, setWeddingState] = useState<WeddingDetails | null>(null);
-  const [isLoaded, setIsLoaded] = useState(false);
+  const [loading, setLoading] = useState(true);
 
-  // Load from localStorage on mount
-  useEffect(() => {
+  // Fetch wedding from database
+  const fetchWedding = useCallback(async () => {
+    if (!user) {
+      setWeddingState(null);
+      setLoading(false);
+      return;
+    }
+
     try {
-      const stored = localStorage.getItem(STORAGE_KEY);
-      if (stored) {
-        const parsed = JSON.parse(stored);
-        // Convert date strings back to Date objects
-        parsed.weddingDate = new Date(parsed.weddingDate);
-        parsed.createdAt = new Date(parsed.createdAt);
-        parsed.events = parsed.events.map((e: any) => ({
-          ...e,
-          date: new Date(e.date),
-        }));
-        setWeddingState(parsed);
-      }
-    } catch (error) {
-      console.error('Error loading wedding data:', error);
-    }
-    setIsLoaded(true);
-  }, []);
+      // Fetch wedding
+      const { data: weddingData, error: weddingError } = await supabase
+        .from('weddings')
+        .select('*')
+        .eq('user_id', user.id)
+        .maybeSingle();
 
-  // Save to localStorage on changes
-  useEffect(() => {
-    if (isLoaded && wedding) {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(wedding));
+      if (weddingError) {
+        console.error('Error fetching wedding:', weddingError);
+        setLoading(false);
+        return;
+      }
+
+      if (!weddingData) {
+        setWeddingState(null);
+        setLoading(false);
+        return;
+      }
+
+      // Fetch events
+      const { data: eventsData, error: eventsError } = await supabase
+        .from('wedding_events')
+        .select('*')
+        .eq('wedding_id', weddingData.id)
+        .order('event_date', { ascending: true });
+
+      if (eventsError) {
+        console.error('Error fetching events:', eventsError);
+      }
+
+      // Transform to WeddingDetails format
+      const events: WeddingEvent[] = (eventsData || []).map((e) => ({
+        id: e.id,
+        type: e.event_type as WeddingEvent['type'],
+        customName: e.custom_name || undefined,
+        date: new Date(e.event_date),
+        time: e.event_time,
+        venue: e.venue || undefined,
+        description: e.description || undefined,
+      }));
+
+      const weddingDetails: WeddingDetails = {
+        id: weddingData.id,
+        brideName: weddingData.bride_name,
+        groomName: weddingData.groom_name,
+        weddingDate: new Date(weddingData.wedding_date),
+        venue: weddingData.venue,
+        bridePhoto: weddingData.bride_photo || undefined,
+        groomPhoto: weddingData.groom_photo || undefined,
+        brideParents: weddingData.bride_parents || undefined,
+        groomParents: weddingData.groom_parents || undefined,
+        rsvpPhone: weddingData.rsvp_phone || undefined,
+        rsvpEmail: weddingData.rsvp_email || undefined,
+        customMessage: weddingData.custom_message || undefined,
+        events,
+        createdAt: new Date(weddingData.created_at),
+      };
+
+      setWeddingState(weddingDetails);
+    } catch (error) {
+      console.error('Error fetching wedding:', error);
+    } finally {
+      setLoading(false);
     }
-  }, [wedding, isLoaded]);
+  }, [user]);
+
+  useEffect(() => {
+    fetchWedding();
+  }, [fetchWedding]);
+
+  const saveWedding = async (weddingData: WeddingDetails) => {
+    if (!user) return;
+
+    try {
+      // Upsert wedding
+      const { data: savedWedding, error: weddingError } = await supabase
+        .from('weddings')
+        .upsert({
+          id: weddingData.id,
+          user_id: user.id,
+          bride_name: weddingData.brideName,
+          groom_name: weddingData.groomName,
+          wedding_date: weddingData.weddingDate.toISOString(),
+          venue: weddingData.venue,
+          bride_photo: weddingData.bridePhoto || null,
+          groom_photo: weddingData.groomPhoto || null,
+          bride_parents: weddingData.brideParents || null,
+          groom_parents: weddingData.groomParents || null,
+          rsvp_phone: weddingData.rsvpPhone || null,
+          rsvp_email: weddingData.rsvpEmail || null,
+          custom_message: weddingData.customMessage || null,
+        })
+        .select()
+        .single();
+
+      if (weddingError) throw weddingError;
+
+      // Delete existing events and insert new ones
+      await supabase
+        .from('wedding_events')
+        .delete()
+        .eq('wedding_id', savedWedding.id);
+
+      if (weddingData.events.length > 0) {
+        const { error: eventsError } = await supabase
+          .from('wedding_events')
+          .insert(
+            weddingData.events.map((e) => ({
+              id: e.id,
+              wedding_id: savedWedding.id,
+              event_type: e.type,
+              custom_name: e.customName || null,
+              event_date: e.date instanceof Date ? e.date.toISOString() : e.date,
+              event_time: e.time,
+              venue: e.venue || null,
+              description: e.description || null,
+            }))
+          );
+
+        if (eventsError) throw eventsError;
+      }
+
+      setWeddingState(weddingData);
+    } catch (error) {
+      console.error('Error saving wedding:', error);
+      throw error;
+    }
+  };
 
   const setWedding = (newWedding: WeddingDetails | null) => {
     setWeddingState(newWedding);
+    if (newWedding && user) {
+      saveWedding(newWedding);
+    }
   };
 
-  const updateWedding = (updates: Partial<WeddingDetails>) => {
-    setWeddingState((prev) => (prev ? { ...prev, ...updates } : null));
+  const updateWedding = async (updates: Partial<WeddingDetails>) => {
+    if (!wedding || !user) return;
+
+    const updatedWedding = { ...wedding, ...updates };
+    setWeddingState(updatedWedding);
+
+    try {
+      const { error } = await supabase
+        .from('weddings')
+        .update({
+          bride_name: updatedWedding.brideName,
+          groom_name: updatedWedding.groomName,
+          wedding_date: updatedWedding.weddingDate.toISOString(),
+          venue: updatedWedding.venue,
+          bride_photo: updatedWedding.bridePhoto || null,
+          groom_photo: updatedWedding.groomPhoto || null,
+          bride_parents: updatedWedding.brideParents || null,
+          groom_parents: updatedWedding.groomParents || null,
+          rsvp_phone: updatedWedding.rsvpPhone || null,
+          rsvp_email: updatedWedding.rsvpEmail || null,
+          custom_message: updatedWedding.customMessage || null,
+        })
+        .eq('id', wedding.id);
+
+      if (error) throw error;
+    } catch (error) {
+      console.error('Error updating wedding:', error);
+    }
   };
 
-  const addEvent = (event: WeddingEvent) => {
-    setWeddingState((prev) => {
-      if (!prev) return null;
-      const events = [...prev.events, event].sort(
-        (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()
-      );
-      return { ...prev, events };
+  const addEvent = async (event: WeddingEvent) => {
+    if (!wedding || !user) return;
+
+    const events = [...wedding.events, event].sort(
+      (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()
+    );
+    setWeddingState({ ...wedding, events });
+
+    try {
+      const { error } = await supabase.from('wedding_events').insert({
+        id: event.id,
+        wedding_id: wedding.id,
+        event_type: event.type,
+        custom_name: event.customName || null,
+        event_date: event.date instanceof Date ? event.date.toISOString() : event.date,
+        event_time: event.time,
+        venue: event.venue || null,
+        description: event.description || null,
+      });
+
+      if (error) throw error;
+    } catch (error) {
+      console.error('Error adding event:', error);
+    }
+  };
+
+  const updateEvent = async (eventId: string, updates: Partial<WeddingEvent>) => {
+    if (!wedding || !user) return;
+
+    const events = wedding.events
+      .map((e) => (e.id === eventId ? { ...e, ...updates } : e))
+      .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+    setWeddingState({ ...wedding, events });
+
+    try {
+      const updatedEvent = events.find((e) => e.id === eventId);
+      if (!updatedEvent) return;
+
+      const { error } = await supabase
+        .from('wedding_events')
+        .update({
+          event_type: updatedEvent.type,
+          custom_name: updatedEvent.customName || null,
+          event_date: updatedEvent.date instanceof Date ? updatedEvent.date.toISOString() : updatedEvent.date,
+          event_time: updatedEvent.time,
+          venue: updatedEvent.venue || null,
+          description: updatedEvent.description || null,
+        })
+        .eq('id', eventId);
+
+      if (error) throw error;
+    } catch (error) {
+      console.error('Error updating event:', error);
+    }
+  };
+
+  const removeEvent = async (eventId: string) => {
+    if (!wedding || !user) return;
+
+    setWeddingState({
+      ...wedding,
+      events: wedding.events.filter((e) => e.id !== eventId),
     });
-  };
 
-  const updateEvent = (eventId: string, updates: Partial<WeddingEvent>) => {
-    setWeddingState((prev) => {
-      if (!prev) return null;
-      const events = prev.events
-        .map((e) => (e.id === eventId ? { ...e, ...updates } : e))
-        .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
-      return { ...prev, events };
-    });
-  };
+    try {
+      const { error } = await supabase
+        .from('wedding_events')
+        .delete()
+        .eq('id', eventId);
 
-  const removeEvent = (eventId: string) => {
-    setWeddingState((prev) => {
-      if (!prev) return null;
-      return { ...prev, events: prev.events.filter((e) => e.id !== eventId) };
-    });
+      if (error) throw error;
+    } catch (error) {
+      console.error('Error removing event:', error);
+    }
   };
 
   const reorderEvents = (events: WeddingEvent[]) => {
-    setWeddingState((prev) => (prev ? { ...prev, events } : null));
+    if (!wedding) return;
+    setWeddingState({ ...wedding, events });
   };
 
-  const resetWedding = () => {
-    localStorage.removeItem(STORAGE_KEY);
-    setWeddingState(null);
+  const resetWedding = async () => {
+    if (!wedding || !user) return;
+
+    try {
+      const { error } = await supabase
+        .from('weddings')
+        .delete()
+        .eq('id', wedding.id);
+
+      if (error) throw error;
+      setWeddingState(null);
+    } catch (error) {
+      console.error('Error resetting wedding:', error);
+    }
   };
 
   const isSetupComplete = Boolean(
-    wedding?.brideName && 
-    wedding?.groomName && 
-    wedding?.weddingDate && 
-    wedding?.venue
+    wedding?.brideName &&
+      wedding?.groomName &&
+      wedding?.weddingDate &&
+      wedding?.venue
   );
 
   return (
@@ -112,6 +315,8 @@ export function WeddingProvider({ children }: { children: ReactNode }) {
         reorderEvents,
         isSetupComplete,
         resetWedding,
+        loading,
+        saveWedding,
       }}
     >
       {children}

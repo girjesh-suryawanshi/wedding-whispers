@@ -14,7 +14,131 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      profiles: {
+        Row: {
+          avatar_url: string | null
+          created_at: string
+          display_name: string | null
+          id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          avatar_url?: string | null
+          created_at?: string
+          display_name?: string | null
+          id?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          avatar_url?: string | null
+          created_at?: string
+          display_name?: string | null
+          id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      wedding_events: {
+        Row: {
+          created_at: string
+          custom_name: string | null
+          description: string | null
+          event_date: string
+          event_time: string
+          event_type: string
+          id: string
+          venue: string | null
+          wedding_id: string
+        }
+        Insert: {
+          created_at?: string
+          custom_name?: string | null
+          description?: string | null
+          event_date: string
+          event_time: string
+          event_type: string
+          id?: string
+          venue?: string | null
+          wedding_id: string
+        }
+        Update: {
+          created_at?: string
+          custom_name?: string | null
+          description?: string | null
+          event_date?: string
+          event_time?: string
+          event_type?: string
+          id?: string
+          venue?: string | null
+          wedding_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "wedding_events_wedding_id_fkey"
+            columns: ["wedding_id"]
+            isOneToOne: false
+            referencedRelation: "weddings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      weddings: {
+        Row: {
+          bride_name: string
+          bride_parents: string | null
+          bride_photo: string | null
+          created_at: string
+          custom_message: string | null
+          groom_name: string
+          groom_parents: string | null
+          groom_photo: string | null
+          id: string
+          rsvp_email: string | null
+          rsvp_phone: string | null
+          updated_at: string
+          user_id: string
+          venue: string
+          wedding_date: string
+        }
+        Insert: {
+          bride_name: string
+          bride_parents?: string | null
+          bride_photo?: string | null
+          created_at?: string
+          custom_message?: string | null
+          groom_name: string
+          groom_parents?: string | null
+          groom_photo?: string | null
+          id?: string
+          rsvp_email?: string | null
+          rsvp_phone?: string | null
+          updated_at?: string
+          user_id: string
+          venue: string
+          wedding_date: string
+        }
+        Update: {
+          bride_name?: string
+          bride_parents?: string | null
+          bride_photo?: string | null
+          created_at?: string
+          custom_message?: string | null
+          groom_name?: string
+          groom_parents?: string | null
+          groom_photo?: string | null
+          id?: string
+          rsvp_email?: string | null
+          rsvp_phone?: string | null
+          updated_at?: string
+          user_id?: string
+          venue?: string
+          wedding_date?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
