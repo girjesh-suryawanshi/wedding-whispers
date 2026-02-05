@@ -87,6 +87,7 @@ export function WeddingProvider({ children }: { children: ReactNode }) {
         rsvpPhone: weddingData.rsvp_phone || undefined,
         rsvpEmail: weddingData.rsvp_email || undefined,
         customMessage: weddingData.custom_message || undefined,
+        shareToken: weddingData.share_token || undefined,
         events,
         createdAt: new Date(weddingData.created_at),
       };
