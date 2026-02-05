@@ -30,6 +30,7 @@ export interface WeddingDetails {
   rsvpPhone?: string;
   rsvpEmail?: string;
   customMessage?: string;
+  shareToken?: string;
   events: WeddingEvent[];
   createdAt: Date;
 }

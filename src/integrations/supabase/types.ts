@@ -98,6 +98,7 @@ export type Database = {
           id: string
           rsvp_email: string | null
           rsvp_phone: string | null
+          share_token: string | null
           updated_at: string
           user_id: string
           venue: string
@@ -115,6 +116,7 @@ export type Database = {
           id?: string
           rsvp_email?: string | null
           rsvp_phone?: string | null
+          share_token?: string | null
           updated_at?: string
           user_id: string
           venue: string
@@ -132,6 +134,7 @@ export type Database = {
           id?: string
           rsvp_email?: string | null
           rsvp_phone?: string | null
+          share_token?: string | null
           updated_at?: string
           user_id?: string
           venue?: string
@@ -144,7 +147,35 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      get_wedding_by_share_token: {
+        Args: { token: string }
+        Returns: {
+          bride_name: string
+          bride_parents: string
+          bride_photo: string
+          custom_message: string
+          groom_name: string
+          groom_parents: string
+          groom_photo: string
+          id: string
+          rsvp_email: string
+          rsvp_phone: string
+          venue: string
+          wedding_date: string
+        }[]
+      }
+      get_wedding_events_by_wedding_id: {
+        Args: { wedding_uuid: string }
+        Returns: {
+          custom_name: string
+          description: string
+          event_date: string
+          event_time: string
+          event_type: string
+          id: string
+          venue: string
+        }[]
+      }
     }
     Enums: {
       [_ in never]: never

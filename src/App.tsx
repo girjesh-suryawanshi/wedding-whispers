@@ -10,6 +10,7 @@ import Auth from "./pages/Auth";
 import CreateWedding from "./pages/CreateWedding";
 import NotFound from "./pages/NotFound";
 import { ProtectedRoute } from "./components/auth/ProtectedRoute";
+import PublicInvitation from "./pages/PublicInvitation";
 
 const queryClient = new QueryClient();
 
@@ -32,6 +33,7 @@ const App = () => (
                   </ProtectedRoute>
                 }
               />
+              <Route path="/invitation/:shareToken" element={<PublicInvitation />} />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
             </Routes>

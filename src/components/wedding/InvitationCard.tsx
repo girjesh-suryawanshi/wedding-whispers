@@ -5,10 +5,11 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Download, Share2, Phone, Mail, MessageSquare, ChevronDown, ChevronUp, Loader2 } from 'lucide-react';
+import { Download, Phone, Mail, MessageSquare, ChevronDown, ChevronUp, Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { TemplateStyle, TEMPLATE_LIST } from './invitation/templateConfig';
 import { InvitationPreview } from './invitation/InvitationPreview';
+import { ShareInvitation } from './ShareInvitation';
 import html2canvas from 'html2canvas';
 import { toast } from 'sonner';
 
@@ -51,19 +52,6 @@ export function InvitationCard() {
       toast.error('Failed to download. Please try again.');
     } finally {
       setIsDownloading(false);
-    }
-  };
-
-  const handleShare = async () => {
-    if (navigator.share) {
-      try {
-        await navigator.share({
-          title: `${wedding.brideName} & ${wedding.groomName} Wedding Invitation`,
-          text: `You are cordially invited to the wedding of ${wedding.brideName} & ${wedding.groomName}`,
-        });
-      } catch (error) {
-        console.log('Share cancelled');
-      }
     }
   };
 
@@ -197,14 +185,11 @@ export function InvitationCard() {
           )}
           {isDownloading ? 'Generating...' : 'Download PNG'}
         </Button>
-        <Button onClick={handleShare} variant="outline" className="flex-1">
-          <Share2 className="w-4 h-4 mr-2" />
-          Share
-        </Button>
+        <ShareInvitation />
       </div>
 
       <p className="text-xs text-center text-muted-foreground">
-        Download as PNG for WhatsApp • PDF print support coming soon
+        Download as PNG for WhatsApp • Share via link
       </p>
     </div>
   );
