@@ -11,6 +11,7 @@ import CreateWedding from "./pages/CreateWedding";
 import NotFound from "./pages/NotFound";
 import { ProtectedRoute } from "./components/auth/ProtectedRoute";
 import PublicInvitation from "./pages/PublicInvitation";
+import PublicCountdown from "./pages/PublicCountdown";
 
 const queryClient = new QueryClient();
 
@@ -34,6 +35,7 @@ const App = () => (
                 }
               />
               <Route path="/invitation/:shareToken" element={<PublicInvitation />} />
+              <Route path="/countdown/:shareToken" element={<PublicCountdown />} />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
             </Routes>
