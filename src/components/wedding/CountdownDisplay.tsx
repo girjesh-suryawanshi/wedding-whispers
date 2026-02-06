@@ -7,10 +7,11 @@ import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { cn } from '@/lib/utils';
 import html2canvas from 'html2canvas';
 import { toast } from 'sonner';
-import { getTodayTheme } from './countdown/countdownThemes';
+import { getTodayTheme, COUNTDOWN_THEMES, CountdownTheme } from './countdown/countdownThemes';
 import { FloralBorder } from './countdown/FloralBorder';
 import { TextureOverlay } from './countdown/TextureOverlay';
 import { ShareCountdown } from './ShareCountdown';
+import { ThemeSelector } from './countdown/ThemeSelector';
 
 interface TimeUnit {
   value: number;
@@ -24,7 +25,8 @@ export function CountdownDisplay() {
   const [isPast, setIsPast] = useState(false);
   const [isDownloading, setIsDownloading] = useState(false);
   const cardRef = useRef<HTMLDivElement>(null);
-  const theme = getTodayTheme();
+  const [selectedTheme, setSelectedTheme] = useState<CountdownTheme>(getTodayTheme);
+  const theme = selectedTheme;
 
   // Determine floral border variant from theme
   const floralVariant = theme.floralBorder.includes('gold') 
@@ -293,6 +295,14 @@ export function CountdownDisplay() {
         <p className="text-xs text-muted-foreground">
           WhatsApp Status ready • New theme daily • Share live countdown
         </p>
+      </div>
+
+      {/* Theme Selector */}
+      <div className="mt-8 pt-8 border-t">
+        <ThemeSelector 
+          selectedTheme={theme}
+          onThemeSelect={setSelectedTheme}
+        />
       </div>
     </div>
   );
