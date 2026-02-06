@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
+import { ImageCropper } from '@/components/ui/image-cropper';
 
 interface PhotoUploadProps {
   label: string;
@@ -19,6 +20,8 @@ export function PhotoUpload({ label, sublabel, value, onChange, className, folde
   const inputRef = useRef<HTMLInputElement>(null);
   const [isDragging, setIsDragging] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
+  const [showCropper, setShowCropper] = useState(false);
+  const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const { user } = useAuth();
 
   const handleFileSelect = async (file: File) => {
@@ -32,16 +35,26 @@ export function PhotoUpload({ label, sublabel, value, onChange, className, folde
       return;
     }
 
+    // Read file for cropping
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setSelectedImage(reader.result as string);
+      setShowCropper(true);
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleUpload = async (croppedImageBlob: Blob) => {
     // If user is logged in, upload to storage
     if (user) {
       setIsUploading(true);
       try {
-        const fileExt = file.name.split('.').pop();
+        const fileExt = 'jpg'; // Cropped image is jpeg
         const fileName = `${user.id}/${folder}/${Date.now()}.${fileExt}`;
-        
+
         const { error: uploadError } = await supabase.storage
           .from('wedding-photos')
-          .upload(fileName, file, { upsert: true });
+          .upload(fileName, croppedImageBlob, { upsert: true });
 
         if (uploadError) throw uploadError;
 
@@ -63,7 +76,7 @@ export function PhotoUpload({ label, sublabel, value, onChange, className, folde
       reader.onloadend = () => {
         onChange(reader.result as string);
       };
-      reader.readAsDataURL(file);
+      reader.readAsDataURL(croppedImageBlob);
     }
   };
 
@@ -95,7 +108,7 @@ export function PhotoUpload({ label, sublabel, value, onChange, className, folde
 
   const handleRemove = async (e: React.MouseEvent) => {
     e.stopPropagation();
-    
+
     // If it's a storage URL, try to delete from storage
     if (value && value.includes('wedding-photos') && user) {
       try {
@@ -107,7 +120,7 @@ export function PhotoUpload({ label, sublabel, value, onChange, className, folde
         console.error('Error deleting photo:', error);
       }
     }
-    
+
     onChange(undefined);
     if (inputRef.current) {
       inputRef.current.value = '';
@@ -141,8 +154,8 @@ export function PhotoUpload({ label, sublabel, value, onChange, className, folde
           isDragging
             ? "border-primary bg-primary/10 scale-105"
             : value
-            ? "border-secondary"
-            : "border-border hover:border-primary/50 hover:bg-accent/50"
+              ? "border-secondary"
+              : "border-border hover:border-primary/50 hover:bg-accent/50"
         )}
       >
         {isUploading ? (
@@ -181,6 +194,13 @@ export function PhotoUpload({ label, sublabel, value, onChange, className, folde
       <p className="text-xs text-center text-muted-foreground">
         Click or drag to upload
       </p>
+
+      <ImageCropper
+        imageSrc={selectedImage}
+        isOpen={showCropper}
+        onClose={() => setShowCropper(false)}
+        onCropComplete={handleUpload}
+      />
     </div>
   );
 }

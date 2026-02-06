@@ -108,6 +108,9 @@ export function WeddingProvider({ children }: { children: ReactNode }) {
     if (!user) return;
 
     try {
+      // Ensure shareToken exists
+      const shareToken = weddingData.shareToken || crypto.randomUUID();
+
       // Upsert wedding
       const { data: savedWedding, error: weddingError } = await supabase
         .from('weddings')
@@ -125,6 +128,7 @@ export function WeddingProvider({ children }: { children: ReactNode }) {
           rsvp_phone: weddingData.rsvpPhone || null,
           rsvp_email: weddingData.rsvpEmail || null,
           custom_message: weddingData.customMessage || null,
+          share_token: shareToken,
         })
         .select()
         .single();
@@ -156,7 +160,7 @@ export function WeddingProvider({ children }: { children: ReactNode }) {
         if (eventsError) throw eventsError;
       }
 
-      setWeddingState(weddingData);
+      setWeddingState({ ...weddingData, shareToken });
     } catch (error) {
       console.error('Error saving wedding:', error);
       throw error;
@@ -191,6 +195,7 @@ export function WeddingProvider({ children }: { children: ReactNode }) {
           rsvp_phone: updatedWedding.rsvpPhone || null,
           rsvp_email: updatedWedding.rsvpEmail || null,
           custom_message: updatedWedding.customMessage || null,
+          share_token: updatedWedding.shareToken || null,
         })
         .eq('id', wedding.id);
 
@@ -299,9 +304,9 @@ export function WeddingProvider({ children }: { children: ReactNode }) {
 
   const isSetupComplete = Boolean(
     wedding?.brideName &&
-      wedding?.groomName &&
-      wedding?.weddingDate &&
-      wedding?.venue
+    wedding?.groomName &&
+    wedding?.weddingDate &&
+    wedding?.venue
   );
 
   return (

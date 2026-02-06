@@ -29,7 +29,7 @@ export function WeddingSetup() {
 
   const handleComplete = () => {
     if (!formData.weddingDate) return;
-    
+
     const wedding: WeddingDetails = {
       id: crypto.randomUUID(),
       brideName: formData.brideName,
@@ -50,8 +50,9 @@ export function WeddingSetup() {
         }
       ],
       createdAt: new Date(),
+      shareToken: crypto.randomUUID(),
     };
-    
+
     setWedding(wedding);
   };
 
@@ -111,8 +112,8 @@ export function WeddingSetup() {
                 num === stepNumber
                   ? "bg-primary text-primary-foreground shadow-soft scale-110"
                   : num < stepNumber
-                  ? "bg-secondary text-secondary-foreground"
-                  : "bg-muted text-muted-foreground"
+                    ? "bg-secondary text-secondary-foreground"
+                    : "bg-muted text-muted-foreground"
               )}
             >
               {num < stepNumber ? '✓' : num}
@@ -278,7 +279,7 @@ export function WeddingSetup() {
               {/* Optional: Parents Names */}
               <div className="pt-4 border-t border-border space-y-4">
                 <p className="text-sm text-muted-foreground text-center">Optional: Parents' Names</p>
-                
+
                 <div className="space-y-2">
                   <Label htmlFor="brideParents" className="text-sm font-medium">
                     Bride's Parents / वधू के माता-पिता
@@ -322,7 +323,7 @@ export function WeddingSetup() {
             ) : (
               <div />
             )}
-            
+
             <Button
               onClick={nextStep}
               disabled={!canProceed()}
