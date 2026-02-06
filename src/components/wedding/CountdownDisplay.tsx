@@ -7,84 +7,15 @@ import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { cn } from '@/lib/utils';
 import html2canvas from 'html2canvas';
 import { toast } from 'sonner';
+import { getTodayTheme } from './countdown/countdownThemes';
+import { FloralBorder } from './countdown/FloralBorder';
+import { TextureOverlay } from './countdown/TextureOverlay';
+import { ShareCountdown } from './ShareCountdown';
 
 interface TimeUnit {
   value: number;
   label: string;
   hindiLabel: string;
-}
-
-// Daily rotating themes for countdown
-const COUNTDOWN_THEMES = [
-  {
-    id: 'royal-maroon',
-    name: 'Royal Maroon',
-    gradient: 'bg-gradient-to-br from-maroon via-maroon-light to-gold',
-    textColor: 'text-primary-foreground',
-    accentColor: 'text-secondary',
-    borderColor: 'border-gold/30',
-    pattern: 'pattern-mandala',
-  },
-  {
-    id: 'golden-sunset',
-    name: 'Golden Sunset',
-    gradient: 'bg-gradient-to-br from-gold via-coral to-maroon',
-    textColor: 'text-primary-foreground',
-    accentColor: 'text-cream',
-    borderColor: 'border-cream/30',
-    pattern: 'pattern-floral',
-  },
-  {
-    id: 'blush-elegance',
-    name: 'Blush Elegance',
-    gradient: 'bg-gradient-to-br from-blush via-accent to-maroon-light',
-    textColor: 'text-maroon-dark',
-    accentColor: 'text-maroon',
-    borderColor: 'border-maroon/20',
-    pattern: 'pattern-floral',
-  },
-  {
-    id: 'emerald-gold',
-    name: 'Emerald & Gold',
-    gradient: 'bg-gradient-to-br from-emerald via-emerald to-gold',
-    textColor: 'text-primary-foreground',
-    accentColor: 'text-gold-light',
-    borderColor: 'border-gold/30',
-    pattern: 'pattern-mandala',
-  },
-  {
-    id: 'midnight-gold',
-    name: 'Midnight Gold',
-    gradient: 'bg-gradient-to-br from-maroon-dark via-maroon to-gold-dark',
-    textColor: 'text-gold-light',
-    accentColor: 'text-gold',
-    borderColor: 'border-gold/40',
-    pattern: 'pattern-mandala',
-  },
-  {
-    id: 'coral-dream',
-    name: 'Coral Dream',
-    gradient: 'bg-gradient-to-br from-coral via-blush-dark to-gold',
-    textColor: 'text-maroon-dark',
-    accentColor: 'text-maroon',
-    borderColor: 'border-maroon/20',
-    pattern: 'pattern-floral',
-  },
-  {
-    id: 'cream-luxury',
-    name: 'Cream Luxury',
-    gradient: 'bg-gradient-to-br from-cream via-blush to-gold-light',
-    textColor: 'text-maroon',
-    accentColor: 'text-gold-dark',
-    borderColor: 'border-gold/30',
-    pattern: 'pattern-floral',
-  },
-];
-
-function getTodayTheme(): typeof COUNTDOWN_THEMES[0] {
-  const today = new Date();
-  const dayOfYear = Math.floor((today.getTime() - new Date(today.getFullYear(), 0, 0).getTime()) / 86400000);
-  return COUNTDOWN_THEMES[dayOfYear % COUNTDOWN_THEMES.length];
 }
 
 export function CountdownDisplay() {
@@ -94,6 +25,16 @@ export function CountdownDisplay() {
   const [isDownloading, setIsDownloading] = useState(false);
   const cardRef = useRef<HTMLDivElement>(null);
   const theme = getTodayTheme();
+
+  // Determine floral border variant from theme
+  const floralVariant = theme.floralBorder.includes('gold') 
+    ? 'gold' 
+    : theme.floralBorder.includes('cream') 
+      ? 'cream' 
+      : 'maroon';
+
+  // Determine texture type from theme
+  const textureType = theme.texture.replace('texture-', '') as 'silk' | 'brocade' | 'velvet' | 'chiffon';
 
   useEffect(() => {
     if (!wedding?.weddingDate) return;
@@ -175,27 +116,35 @@ export function CountdownDisplay() {
           theme.gradient
         )}
       >
-      {/* Decorative Elements */}
+        {/* Texture Overlay */}
+        <TextureOverlay texture={textureType} />
+        
+        {/* Pattern Overlay */}
         <div className={cn("absolute inset-0 opacity-20", theme.pattern)} />
-      <div className="absolute top-4 right-4 animate-float">
-          <Sparkles className={cn("w-6 h-6 opacity-60", theme.accentColor)} />
-      </div>
-      <div className="absolute bottom-4 left-4 animate-float" style={{ animationDelay: '-2s' }}>
-          <Heart className={cn("w-5 h-5 opacity-40", theme.textColor)} fill="currentColor" />
-      </div>
+        
+        {/* Floral Border */}
+        <FloralBorder variant={floralVariant} />
 
-        <div className="relative z-10 h-full flex flex-col justify-between">
-        {/* Couple Names */}
+        {/* Decorative Elements */}
+        <div className="absolute top-16 right-10 animate-float">
+          <Sparkles className={cn("w-6 h-6 opacity-60", theme.accentColor)} />
+        </div>
+        <div className="absolute bottom-16 left-10 animate-float" style={{ animationDelay: '-2s' }}>
+          <Heart className={cn("w-5 h-5 opacity-40", theme.textColor)} fill="currentColor" />
+        </div>
+
+        <div className="relative z-10 h-full flex flex-col justify-between py-8 px-2">
+          {/* Couple Names */}
           <div className="text-center pt-4">
             <p className={cn("text-sm uppercase tracking-wider mb-2 opacity-80", theme.textColor)}>
-            Celebrating the union of
-          </p>
+              Celebrating the union of
+            </p>
             <h2 className={cn("font-display text-2xl", theme.textColor)}>
-            {wedding.brideName}
+              {wedding.brideName}
               <span className={cn("mx-2", theme.accentColor)}>&</span>
-            {wedding.groomName}
-          </h2>
-        </div>
+              {wedding.groomName}
+            </h2>
+          </div>
 
           {/* Couple Photos */}
           {hasPhotos && (
@@ -252,21 +201,21 @@ export function CountdownDisplay() {
             </div>
           )}
 
-        {isPast ? (
-          /* Post Wedding Message */
+          {isPast ? (
+            /* Post Wedding Message */
             <div className="text-center flex-1 flex flex-col items-center justify-center">
               <div className={cn("inline-flex items-center justify-center w-20 h-20 rounded-full mb-4", theme.textColor, "bg-current/10")}>
                 <Heart className={cn("w-10 h-10", theme.accentColor)} fill="currentColor" />
-            </div>
+              </div>
               <h3 className={cn("font-display text-2xl mb-2", theme.textColor)}>
-              Happily Married! 💕
-            </h3>
+                Happily Married! 💕
+              </h3>
               <p className={cn("font-hindi opacity-80", theme.textColor)}>
-              शुभ विवाह संपन्न
-            </p>
-          </div>
-        ) : (
-          /* Countdown Timer */
+                शुभ विवाह संपन्न
+              </p>
+            </div>
+          ) : (
+            /* Countdown Timer */
             <div className="flex-1 flex flex-col items-center justify-center">
               {/* Days Highlight */}
               <div className={cn(
@@ -289,29 +238,29 @@ export function CountdownDisplay() {
                 </div>
               </div>
 
-            {/* Detailed Countdown */}
+              {/* Detailed Countdown */}
               <div className="grid grid-cols-4 gap-2 w-full">
-              {countdown.map((unit, index) => (
-                <div
-                  key={unit.label}
-                  className={cn(
+                {countdown.map((unit) => (
+                  <div
+                    key={unit.label}
+                    className={cn(
                       "text-center p-2 rounded-xl border",
                       theme.borderColor,
                       "transition-all duration-300"
-                  )}
+                    )}
                     style={{ backgroundColor: 'rgba(255,255,255,0.1)' }}
-                >
+                  >
                     <div className={cn("font-display text-xl", theme.textColor)}>
-                    {String(unit.value).padStart(2, '0')}
-                  </div>
+                      {String(unit.value).padStart(2, '0')}
+                    </div>
                     <div className={cn("text-[10px] uppercase tracking-wide opacity-70", theme.textColor)}>
-                    {unit.label}
+                      {unit.label}
+                    </div>
                   </div>
-                </div>
-              ))}
+                ))}
+              </div>
             </div>
-            </div>
-        )}
+          )}
 
           {/* Theme Label */}
           <div className="text-center pt-4">
@@ -319,26 +268,30 @@ export function CountdownDisplay() {
               Today's Theme: {theme.name}
             </p>
           </div>
+        </div>
       </div>
-    </div>
 
-      {/* Download Button - Outside the card */}
-      <div className="text-center">
-        <Button 
-          onClick={handleDownload}
-          disabled={isDownloading}
-          variant="secondary" 
-          className="bg-secondary hover:bg-secondary/90 text-secondary-foreground shadow-gold"
-        >
-          {isDownloading ? (
-            <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-          ) : (
-            <Download className="w-4 h-4 mr-2" />
-          )}
-          {isDownloading ? 'Generating...' : 'Download Status Image'}
-        </Button>
-        <p className="text-xs text-muted-foreground mt-2">
-          WhatsApp Status ready • New theme daily
+      {/* Action Buttons - Outside the card */}
+      <div className="text-center space-y-3">
+        <div className="flex items-center justify-center gap-3 flex-wrap">
+          <Button 
+            onClick={handleDownload}
+            disabled={isDownloading}
+            variant="secondary" 
+            className="bg-secondary hover:bg-secondary/90 text-secondary-foreground shadow-gold"
+          >
+            {isDownloading ? (
+              <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+            ) : (
+              <Download className="w-4 h-4 mr-2" />
+            )}
+            {isDownloading ? 'Generating...' : 'Download Status'}
+          </Button>
+          
+          <ShareCountdown shareToken={wedding.shareToken} />
+        </div>
+        <p className="text-xs text-muted-foreground">
+          WhatsApp Status ready • New theme daily • Share live countdown
         </p>
       </div>
     </div>
