@@ -45,7 +45,7 @@ export function InvitationCard() {
       link.download = `${wedding.brideName}-${wedding.groomName}-invitation.png`;
       link.href = canvas.toDataURL('image/png', 1.0);
       link.click();
-      
+
       toast.success('Invitation downloaded successfully!');
     } catch (error) {
       console.error('Download error:', error);
@@ -101,7 +101,7 @@ export function InvitationCard() {
             <ChevronDown className="w-4 h-4 text-muted-foreground" />
           )}
         </button>
-        
+
         {showCustomization && (
           <div className="p-4 space-y-4 border-t border-border">
             {/* RSVP Contact */}
