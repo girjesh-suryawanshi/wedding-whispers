@@ -154,7 +154,8 @@ app.post('/api/weddings', asyncHandler(async (req, res) => {
     const {
         id, user_id, bride_name, groom_name, wedding_date, venue,
         bride_photo, groom_photo, bride_parents, groom_parents,
-        rsvp_phone, rsvp_email, custom_message, share_token, events
+        rsvp_phone, rsvp_email, custom_message, share_token,
+        template, language, events
     } = weddingData;
 
     const client = await pool.connect();
@@ -166,9 +167,10 @@ app.post('/api/weddings', asyncHandler(async (req, res) => {
             INSERT INTO public.weddings (
                 id, user_id, bride_name, groom_name, wedding_date, venue, 
                 bride_photo, groom_photo, bride_parents, groom_parents, 
-                rsvp_phone, rsvp_email, custom_message, share_token, updated_at
+                rsvp_phone, rsvp_email, custom_message, share_token, 
+                template, language, updated_at
             ) VALUES (
-                $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, NOW()
+                $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, NOW()
             )
             ON CONFLICT (id) DO UPDATE SET
                 bride_name = EXCLUDED.bride_name,
@@ -183,6 +185,8 @@ app.post('/api/weddings', asyncHandler(async (req, res) => {
                 rsvp_email = EXCLUDED.rsvp_email,
                 custom_message = EXCLUDED.custom_message,
                 share_token = EXCLUDED.share_token,
+                template = EXCLUDED.template,
+                language = EXCLUDED.language,
                 updated_at = NOW()
             RETURNING id;
         `;
@@ -190,7 +194,8 @@ app.post('/api/weddings', asyncHandler(async (req, res) => {
         const weddingValues = [
             id, user_id, bride_name, groom_name, wedding_date, venue,
             bride_photo, groom_photo, bride_parents, groom_parents,
-            rsvp_phone, rsvp_email, custom_message, share_token
+            rsvp_phone, rsvp_email, custom_message, share_token,
+            template || 'rajasthani', language || 'bilingual'
         ];
 
         const weddingRes = await client.query(weddingQuery, weddingValues);
@@ -230,7 +235,8 @@ app.get('/api/weddings/:token', asyncHandler(async (req, res) => {
         `SELECT 
       id, bride_name, groom_name, wedding_date, venue, 
       bride_photo, groom_photo, bride_parents, groom_parents, 
-      rsvp_phone, rsvp_email, custom_message 
+      rsvp_phone, rsvp_email, custom_message, 
+      template, language
      FROM public.weddings 
      WHERE share_token = $1`,
         [token]
@@ -304,7 +310,8 @@ app.get('/api/weddings/user/:userId', asyncHandler(async (req, res) => {
         `SELECT 
       id, bride_name, groom_name, wedding_date, venue, 
       bride_photo, groom_photo, bride_parents, groom_parents, 
-      rsvp_phone, rsvp_email, custom_message, share_token 
+      rsvp_phone, rsvp_email, custom_message, share_token, 
+      template, language
      FROM public.weddings 
      WHERE user_id = $1`,
         [userId]

@@ -1,7 +1,7 @@
 -- Enable UUID extension
 CREATE EXTENSION IF NOT EXISTS "pgcrypto";
 
--- Simple Users Table (Replacing auth.users)
+-- Simple Users Table (Replacing auth.users)nt
 CREATE TABLE IF NOT EXISTS public.users (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   email TEXT UNIQUE NOT NULL,
@@ -34,6 +34,8 @@ CREATE TABLE IF NOT EXISTS public.weddings (
   rsvp_phone TEXT,
   rsvp_email TEXT,
   custom_message TEXT,
+  template TEXT DEFAULT 'rajasthani',
+  language TEXT DEFAULT 'bilingual',
   share_token TEXT UNIQUE,
   created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),
   updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now()

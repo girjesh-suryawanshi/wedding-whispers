@@ -50,26 +50,26 @@
     --gold: 43 80% 52%;
     --gold-light: 43 70% 75%;
     --gold-dark: 43 70% 35%;
-    
+
     --maroon: 350 70% 30%;
     --maroon-light: 350 50% 45%;
     --maroon-dark: 350 80% 20%;
-    
+
     --blush: 350 60% 90%;
     --blush-dark: 350 50% 75%;
-    
+
     --cream: 30 50% 96%;
     --cream-dark: 30 40% 88%;
-    
+
     --coral: 15 80% 60%;
     --emerald: 160 60% 35%;
-    
+
     /* Gradients */
     --gradient-royal: linear-gradient(135deg, hsl(350 70% 30%) 0%, hsl(350 60% 40%) 50%, hsl(43 70% 50%) 100%);
     --gradient-gold: linear-gradient(135deg, hsl(43 80% 52%) 0%, hsl(43 60% 65%) 100%);
     --gradient-blush: linear-gradient(180deg, hsl(350 60% 90%) 0%, hsl(30 50% 96%) 100%);
     --gradient-sunset: linear-gradient(135deg, hsl(350 70% 30%) 0%, hsl(15 80% 60%) 50%, hsl(43 80% 52%) 100%);
-    
+
     /* Shadows */
     --shadow-soft: 0 4px 20px -4px hsl(350 70% 30% / 0.15);
     --shadow-gold: 0 4px 20px -4px hsl(43 80% 52% / 0.3);
@@ -135,39 +135,45 @@
     @apply bg-background text-foreground antialiased;
     font-family: 'Poppins', sans-serif;
   }
-  
-  h1, h2, h3, h4, h5, h6 {
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
     font-family: 'Playfair Display', serif;
   }
-  
+
   .font-hindi {
     font-family: 'Noto Sans Devanagari', sans-serif;
   }
-  
+
   .font-display {
     font-family: 'Playfair Display', serif;
   }
-  
+
   .font-body {
     font-family: 'Poppins', sans-serif;
   }
 }
 
 @layer components {
+
   /* Royal Button Styles */
   .btn-royal {
     @apply bg-primary text-primary-foreground px-8 py-4 rounded-full font-medium;
     @apply shadow-[var(--shadow-soft)] transition-all duration-300;
     @apply hover:shadow-[var(--shadow-elevated)] hover:scale-105;
   }
-  
+
   .btn-gold {
     background: var(--gradient-gold);
     @apply text-foreground px-8 py-4 rounded-full font-medium;
     @apply shadow-[var(--shadow-gold)] transition-all duration-300;
     @apply hover:shadow-[var(--shadow-elevated)] hover:scale-105;
   }
-  
+
   /* Card Styles */
   .card-royal {
     @apply bg-card rounded-2xl p-6;
@@ -175,14 +181,14 @@
     @apply shadow-[var(--shadow-soft)] transition-all duration-300;
     @apply hover:shadow-[var(--shadow-elevated)];
   }
-  
+
   /* Decorative Elements */
   .ornament-border {
     @apply relative;
     @apply before:absolute before:inset-0 before:border-2 before:border-secondary before:rounded-2xl;
     @apply before:m-2 before:pointer-events-none;
   }
-  
+
   /* Text Gradients */
   .text-gradient-royal {
     background: var(--gradient-royal);
@@ -190,49 +196,104 @@
     -webkit-text-fill-color: transparent;
     background-clip: text;
   }
-  
+
   .text-gradient-gold {
     background: var(--gradient-gold);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
   }
-  
+
   /* Floating Animation for Decorative Elements */
   @keyframes float {
-    0%, 100% { transform: translateY(0) rotate(0deg); }
-    50% { transform: translateY(-10px) rotate(3deg); }
+
+    0%,
+    100% {
+      transform: translateY(0) rotate(0deg);
+    }
+
+    50% {
+      transform: translateY(-10px) rotate(3deg);
+    }
   }
-  
+
   @keyframes shimmer {
-    0% { background-position: -200% center; }
-    100% { background-position: 200% center; }
+    0% {
+      background-position: -200% center;
+    }
+
+    100% {
+      background-position: 200% center;
+    }
   }
-  
+
   @keyframes pulse-gold {
-    0%, 100% { box-shadow: 0 0 0 0 hsl(43 80% 52% / 0.4); }
-    50% { box-shadow: 0 0 0 15px hsl(43 80% 52% / 0); }
+
+    0%,
+    100% {
+      box-shadow: 0 0 0 0 hsl(43 80% 52% / 0.4);
+    }
+
+    50% {
+      box-shadow: 0 0 0 15px hsl(43 80% 52% / 0);
+    }
   }
-  
+
+  @keyframes floatUp {
+    0% {
+      transform: translateY(0) rotate(0deg);
+      opacity: 0;
+    }
+
+    10% {
+      opacity: 1;
+    }
+
+    90% {
+      opacity: 1;
+    }
+
+    100% {
+      transform: translateY(-110vh) rotate(360deg);
+      opacity: 0;
+    }
+  }
+
+  @keyframes sway {
+
+    0%,
+    100% {
+      transform: translateX(0px);
+    }
+
+    50% {
+      transform: translateX(20px);
+    }
+  }
+
   .animate-float {
     animation: float 6s ease-in-out infinite;
   }
-  
+
   .animate-shimmer {
     background: linear-gradient(90deg, transparent 0%, hsl(43 80% 52% / 0.3) 50%, transparent 100%);
     background-size: 200% 100%;
     animation: shimmer 3s linear infinite;
   }
-  
+
   .animate-pulse-gold {
     animation: pulse-gold 2s ease-in-out infinite;
   }
-  
+
+  .animate-float-up {
+    animation: floatUp 10s linear infinite;
+  }
+
   /* Floral Pattern Overlay */
   .pattern-floral {
     background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23d4af37' fill-opacity='0.08'%3E%3Cpath d='M30 30c0-5.5 4.5-10 10-10s10 4.5 10 10-4.5 10-10 10-10-4.5-10-10zm-20 0c0-5.5 4.5-10 10-10s10 4.5 10 10-4.5 10-10 10-10-4.5-10-10z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
   }
-  
+
   /* Mandala Pattern */
   .pattern-mandala {
     background-image: url("data:image/svg+xml,%3Csvg width='80' height='80' viewBox='0 0 80 80' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' stroke='%238b1a1a' stroke-opacity='0.05' stroke-width='1'%3E%3Ccircle cx='40' cy='40' r='30'/%3E%3Ccircle cx='40' cy='40' r='20'/%3E%3Ccircle cx='40' cy='40' r='10'/%3E%3C/g%3E%3C/svg%3E");

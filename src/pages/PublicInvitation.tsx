@@ -2,7 +2,6 @@ import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { useWedding } from '@/contexts/WeddingContext';
 import { InvitationPreview } from '@/components/wedding/invitation/InvitationPreview';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Loader2, Heart } from 'lucide-react';
 import { TemplateStyle, TEMPLATE_LIST } from '@/components/wedding/invitation/templateConfig';
 import { WeddingEnvelope } from '@/components/wedding/invitation/WeddingEnvelope';
@@ -14,8 +13,7 @@ export default function PublicInvitation() {
   // Use the context instead of local state/supabase
   const { wedding, setWedding, fetchPublicWedding, loading: contextLoading } = useWedding();
   const [error, setError] = useState<string | null>(null);
-  const [template, setTemplate] = useState<TemplateStyle>('rajasthani'); // Default
-  const [language, setLanguage] = useState<Language>('bilingual');
+
 
   const [hasOpened, setHasOpened] = useState(false);
 
@@ -76,40 +74,14 @@ export default function PublicInvitation() {
             <p className="text-sm text-muted-foreground">Wedding Invitation</p>
           </div>
 
-          {/* Template Selector */}
-          <div className="mb-4">
-            <div className="flex justify-center gap-2 flex-wrap">
-              {TEMPLATE_LIST.map((t) => (
-                <button
-                  key={t.id}
-                  onClick={() => setTemplate(t.id)}
-                  className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all ${template === t.id
-                    ? 'bg-primary text-primary-foreground'
-                    : 'bg-muted text-muted-foreground hover:bg-muted/80'
-                    }`}
-                >
-                  {t.name}
-                </button>
-              ))}
-            </div>
+          {/* Invitation Preview - Enforced Theme/Language */}
+          <div className="mt-8">
+            <InvitationPreview
+              wedding={wedding}
+              template={(wedding.template as any) || 'rajasthani'}
+              language={(wedding.language as any) || 'bilingual'}
+            />
           </div>
-
-          {/* Language Tabs */}
-          <Tabs value={language} onValueChange={(v) => setLanguage(v as Language)} className="w-full">
-            <TabsList className="grid w-full grid-cols-3 mb-4">
-              <TabsTrigger value="english">English</TabsTrigger>
-              <TabsTrigger value="hindi">हिंदी</TabsTrigger>
-              <TabsTrigger value="bilingual">Bilingual</TabsTrigger>
-            </TabsList>
-
-            <TabsContent value={language}>
-              <InvitationPreview
-                wedding={wedding}
-                template={template}
-                language={language}
-              />
-            </TabsContent>
-          </Tabs>
 
           {/* Footer */}
           <p className="text-center text-xs text-muted-foreground mt-6">

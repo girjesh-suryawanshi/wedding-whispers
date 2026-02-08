@@ -42,17 +42,33 @@ export function WeddingEnvelope({ wedding, onOpenComplete }: WeddingEnvelopeProp
                 isFadingOut ? "opacity-0 pointer-events-none" : "opacity-100"
             )}
         >
-            {/* Background Particles/Effect - CSS Only */}
-            <div className="absolute inset-0 overflow-hidden pointer-events-none">
+            {/* Background Particles/Effect */}
+            <div className="absolute inset-0 overflow-hidden pointer-events-none z-0">
                 {/* Simple floating circles */}
                 <div className="absolute top-1/4 left-1/4 w-32 h-32 bg-amber-500/10 rounded-full blur-3xl animate-pulse" />
                 <div className="absolute bottom-1/4 right-1/4 w-40 h-40 bg-rose-500/10 rounded-full blur-3xl animate-pulse delay-700" />
+
+                {/* Flying Hearts & Roses */}
+                {[...Array(15)].map((_, i) => (
+                    <div
+                        key={i}
+                        className="absolute -bottom-10 text-rose-300/60 animate-float-up"
+                        style={{
+                            left: `${Math.random() * 100}%`,
+                            animationDuration: `${8 + Math.random() * 7}s`,
+                            animationDelay: `${Math.random() * 5}s`,
+                            fontSize: `${20 + Math.random() * 24}px`
+                        }}
+                    >
+                        {i % 2 === 0 ? '❤️' : '🌹'}
+                    </div>
+                ))}
             </div>
 
             <div
                 onClick={handleOpen}
                 className={cn(
-                    "relative w-[340px] h-[240px] cursor-pointer perspective-[1000px] group transition-all duration-700",
+                    "relative w-[340px] h-[240px] cursor-pointer perspective-[1000px] group transition-all duration-700 z-10",
                     isOpen ? "scale-100 translate-y-16" : "hover:scale-105"
                 )}
             >

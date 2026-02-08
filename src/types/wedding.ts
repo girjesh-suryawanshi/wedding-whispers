@@ -1,9 +1,9 @@
-export type EventType = 
-  | 'ring-ceremony' 
-  | 'haldi' 
+export type EventType =
+  | 'ring-ceremony'
+  | 'haldi'
   | 'mehndi'
-  | 'sangeet' 
-  | 'wedding' 
+  | 'sangeet'
+  | 'wedding'
   | 'reception'
   | 'custom';
 
@@ -30,6 +30,8 @@ export interface WeddingDetails {
   rsvpPhone?: string;
   rsvpEmail?: string;
   customMessage?: string;
+  template?: string;
+  language?: 'english' | 'hindi' | 'bilingual';
   shareToken?: string;
   events: WeddingEvent[];
   createdAt: Date;
