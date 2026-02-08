@@ -27,18 +27,53 @@ export function WeddingProvider({ children }: { children: ReactNode }) {
 
   // Fetch wedding from database
   const fetchWedding = useCallback(async () => {
-    // For local dev without auth, we might need a way to identify "current user"
-    // For now, let's assume we are fetching by share token or a hardcoded ID for dev?
-    // wait, the previous code used user.id. 
-    // Since we are moving away from Supabase Auth, we need a new way to handle "owner" access.
-    // For the "Invitation" view (public), we use the token.
-    // For the "Dashboard" view (private), we need a simplified auth.
+    if (!user) {
+      setLoading(false);
+      return;
+    }
 
-    // TEMPORARY: For local migration, let's prioritize the Public Invitation view first
-    // as that's what seems to be the main focus of recent tasks.
-    // We will leave the "Dashboard" fetching for a moment or mock it.
+    try {
+      const { api } = await import('@/services/api');
+      const weddingData = await api.getWeddingByUser(user.id);
 
-    setLoading(false);
+      if (weddingData) {
+        // Fetch events
+        const eventsData = await api.getWeddingEvents(weddingData.id);
+
+        // Transform events
+        const events: WeddingEvent[] = (eventsData || []).map((e: any) => ({
+          id: e.id,
+          type: e.event_type as WeddingEvent['type'],
+          customName: e.custom_name || undefined,
+          date: new Date(e.event_date),
+          time: e.event_time,
+          venue: e.venue || undefined,
+          description: e.description || undefined,
+        }));
+
+        setWeddingState({
+          id: weddingData.id,
+          brideName: weddingData.bride_name,
+          groomName: weddingData.groom_name,
+          weddingDate: new Date(weddingData.wedding_date),
+          venue: weddingData.venue,
+          bridePhoto: weddingData.bride_photo || undefined,
+          groomPhoto: weddingData.groom_photo || undefined,
+          brideParents: weddingData.bride_parents || undefined,
+          groomParents: weddingData.groom_parents || undefined,
+          rsvpPhone: weddingData.rsvp_phone || undefined,
+          rsvpEmail: weddingData.rsvp_email || undefined,
+          customMessage: weddingData.custom_message || undefined,
+          shareToken: weddingData.share_token,
+          events,
+          createdAt: new Date(),
+        });
+      }
+    } catch (error) {
+      console.error('Error fetching wedding:', error);
+    } finally {
+      setLoading(false);
+    }
   }, [user]);
 
   // We need to expose a way to fetch by token for the Public view
@@ -110,54 +145,28 @@ export function WeddingProvider({ children }: { children: ReactNode }) {
       // Ensure shareToken exists
       const shareToken = weddingData.shareToken || crypto.randomUUID();
 
-      // Upsert wedding
-      const { data: savedWedding, error: weddingError } = await supabase
-        .from('weddings')
-        .upsert({
-          id: weddingData.id,
-          user_id: user.id,
-          bride_name: weddingData.brideName,
-          groom_name: weddingData.groomName,
-          wedding_date: weddingData.weddingDate.toISOString(),
-          venue: weddingData.venue,
-          bride_photo: weddingData.bridePhoto || null,
-          groom_photo: weddingData.groomPhoto || null,
-          bride_parents: weddingData.brideParents || null,
-          groom_parents: weddingData.groomParents || null,
-          rsvp_phone: weddingData.rsvpPhone || null,
-          rsvp_email: weddingData.rsvpEmail || null,
-          custom_message: weddingData.customMessage || null,
-          share_token: shareToken,
-        })
-        .select()
-        .single();
+      // Prepare data for API
+      const apiData = {
+        id: weddingData.id,
+        user_id: user.id,
+        bride_name: weddingData.brideName,
+        groom_name: weddingData.groomName,
+        wedding_date: weddingData.weddingDate.toISOString(),
+        venue: weddingData.venue,
+        bride_photo: weddingData.bridePhoto || null,
+        groom_photo: weddingData.groomPhoto || null,
+        bride_parents: weddingData.brideParents || null,
+        groom_parents: weddingData.groomParents || null,
+        rsvp_phone: weddingData.rsvpPhone || null,
+        rsvp_email: weddingData.rsvpEmail || null,
+        custom_message: weddingData.customMessage || null,
+        share_token: shareToken,
+        events: weddingData.events
+      };
 
-      if (weddingError) throw weddingError;
-
-      // Delete existing events and insert new ones
-      await supabase
-        .from('wedding_events')
-        .delete()
-        .eq('wedding_id', savedWedding.id);
-
-      if (weddingData.events.length > 0) {
-        const { error: eventsError } = await supabase
-          .from('wedding_events')
-          .insert(
-            weddingData.events.map((e) => ({
-              id: e.id,
-              wedding_id: savedWedding.id,
-              event_type: e.type,
-              custom_name: e.customName || null,
-              event_date: e.date instanceof Date ? e.date.toISOString() : e.date,
-              event_time: e.time,
-              venue: e.venue || null,
-              description: e.description || null,
-            }))
-          );
-
-        if (eventsError) throw eventsError;
-      }
+      // Use API Service
+      const { api } = await import('@/services/api');
+      await api.saveWedding(apiData);
 
       setWeddingState({ ...weddingData, shareToken });
     } catch (error) {

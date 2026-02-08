@@ -1,14 +1,38 @@
-require('dotenv').config();
+const path = require('path');
+require('dotenv').config({ path: path.resolve(__dirname, '.env') });
 const express = require('express');
 const cors = require('cors');
 const { Pool } = require('pg');
 const crypto = require('crypto');
+const multer = require('multer');
+const fs = require('fs');
 
 const app = express();
 const port = process.env.PORT || 3000;
+console.log('Attempting to start on port:', port);
 
 app.use(cors());
 app.use(express.json());
+
+// Serve static files from uploads directory
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+
+// Configure Multer
+const storage = multer.diskStorage({
+    destination: function (req, file, cb) {
+        cb(null, path.join(__dirname, 'uploads'))
+    },
+    filename: function (req, file, cb) {
+        // Unique filename: timestamp-random.ext
+        const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+        cb(null, uniqueSuffix + path.extname(file.originalname))
+    }
+});
+
+const upload = multer({
+    storage: storage,
+    limits: { fileSize: 5 * 1024 * 1024 } // 5MB limit
+});
 
 // Database connection
 const pool = new Pool({
@@ -112,7 +136,93 @@ app.post('/api/auth/signin', asyncHandler(async (req, res) => {
     });
 }));
 
-// 1. Get Wedding by Share Token
+// GET /api/profiles/:userId
+app.get('/api/profiles/:userId', asyncHandler(async (req, res) => {
+    const { userId } = req.params;
+    const result = await pool.query('SELECT * FROM public.profiles WHERE user_id = $1', [userId]);
+
+    if (result.rows.length === 0) {
+        return res.status(404).json({ error: 'Profile not found' });
+    }
+
+    res.json(result.rows[0]);
+}));
+
+// 1. Create/Update Wedding
+app.post('/api/weddings', asyncHandler(async (req, res) => {
+    const weddingData = req.body;
+    const {
+        id, user_id, bride_name, groom_name, wedding_date, venue,
+        bride_photo, groom_photo, bride_parents, groom_parents,
+        rsvp_phone, rsvp_email, custom_message, share_token, events
+    } = weddingData;
+
+    const client = await pool.connect();
+    try {
+        await client.query('BEGIN');
+
+        // Upsert Wedding
+        const weddingQuery = `
+            INSERT INTO public.weddings (
+                id, user_id, bride_name, groom_name, wedding_date, venue, 
+                bride_photo, groom_photo, bride_parents, groom_parents, 
+                rsvp_phone, rsvp_email, custom_message, share_token, updated_at
+            ) VALUES (
+                $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, NOW()
+            )
+            ON CONFLICT (id) DO UPDATE SET
+                bride_name = EXCLUDED.bride_name,
+                groom_name = EXCLUDED.groom_name,
+                wedding_date = EXCLUDED.wedding_date,
+                venue = EXCLUDED.venue,
+                bride_photo = EXCLUDED.bride_photo,
+                groom_photo = EXCLUDED.groom_photo,
+                bride_parents = EXCLUDED.bride_parents,
+                groom_parents = EXCLUDED.groom_parents,
+                rsvp_phone = EXCLUDED.rsvp_phone,
+                rsvp_email = EXCLUDED.rsvp_email,
+                custom_message = EXCLUDED.custom_message,
+                share_token = EXCLUDED.share_token,
+                updated_at = NOW()
+            RETURNING id;
+        `;
+
+        const weddingValues = [
+            id, user_id, bride_name, groom_name, wedding_date, venue,
+            bride_photo, groom_photo, bride_parents, groom_parents,
+            rsvp_phone, rsvp_email, custom_message, share_token
+        ];
+
+        const weddingRes = await client.query(weddingQuery, weddingValues);
+        const savedWeddingId = weddingRes.rows[0].id;
+
+        // Handle Events: Delete existing and insert new
+        await client.query('DELETE FROM public.wedding_events WHERE wedding_id = $1', [savedWeddingId]);
+
+        if (events && events.length > 0) {
+            for (const event of events) {
+                await client.query(`
+                    INSERT INTO public.wedding_events (
+                        id, wedding_id, event_type, custom_name, event_date, event_time, venue, description
+                    ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+                `, [
+                    event.id, savedWeddingId, event.type, event.customName || null,
+                    event.date, event.time, event.venue || null, event.description || null
+                ]);
+            }
+        }
+
+        await client.query('COMMIT');
+        res.json({ id: savedWeddingId, message: 'Wedding saved successfully' });
+    } catch (e) {
+        await client.query('ROLLBACK');
+        throw e;
+    } finally {
+        client.release();
+    }
+}));
+
+// 2. Get Wedding by Share Token
 // Replaces: get_wedding_by_share_token RPC
 app.get('/api/weddings/:token', asyncHandler(async (req, res) => {
     const { token } = req.params;
@@ -166,6 +276,45 @@ app.get('/api/weddings/:weddingId/events', asyncHandler(async (req, res) => {
 app.post('/api/rsvp', asyncHandler(async (req, res) => {
     // Logic to save RSVP
     res.json({ message: 'RSVP received' });
+}));
+
+// Upload Endpoint
+app.post('/api/upload', upload.single('file'), (req, res) => {
+    if (!req.file) {
+        return res.status(400).json({ error: 'No file uploaded' });
+    }
+
+    // Return the URL to access the file
+    // Assuming server is reachable at same host/port for now, simplified
+    const fileUrl = `${req.protocol}://${req.get('host')}/uploads/${req.file.filename}`;
+    res.json({ url: fileUrl });
+});
+
+// 3. Get Wedding by User ID (Private Dashboard)
+app.get('/api/weddings/user/:userId', asyncHandler(async (req, res) => {
+    const { userId } = req.params;
+
+    // Simple UUID validation
+    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+    if (!uuidRegex.test(userId)) {
+        return res.status(400).json({ error: 'Invalid User ID format' });
+    }
+
+    const result = await pool.query(
+        `SELECT 
+      id, bride_name, groom_name, wedding_date, venue, 
+      bride_photo, groom_photo, bride_parents, groom_parents, 
+      rsvp_phone, rsvp_email, custom_message, share_token 
+     FROM public.weddings 
+     WHERE user_id = $1`,
+        [userId]
+    );
+
+    if (result.rows.length === 0) {
+        return res.json(null); // Return null if no wedding found for user
+    }
+
+    res.json(result.rows[0]);
 }));
 
 // Error handling middleware

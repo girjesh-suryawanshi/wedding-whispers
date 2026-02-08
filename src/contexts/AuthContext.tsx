@@ -83,7 +83,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const signUp = async (email: string, password: string, displayName?: string) => {
     try {
-      const response = await fetch('http://localhost:3000/api/auth/signup', {
+      const response = await fetch('http://localhost:3001/api/auth/signup', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password, data: { display_name: displayName } }),
@@ -98,7 +98,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setUser(session.user);
 
       // Fetch profile (could also be returned from signup to save a call)
-      const profileRes = await fetch(`http://localhost:3000/api/profiles/${session.user.id}`);
+      const profileRes = await fetch(`http://localhost:3001/api/profiles/${session.user.id}`);
       if (profileRes.ok) {
         const profileData = await profileRes.json();
         setProfile(profileData);
@@ -112,7 +112,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const signIn = async (email: string, password: string) => {
     try {
-      const response = await fetch('http://localhost:3000/api/auth/signin', {
+      const response = await fetch('http://localhost:3001/api/auth/signin', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password }),

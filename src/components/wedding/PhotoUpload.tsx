@@ -2,10 +2,10 @@ import React, { useRef, useState } from 'react';
 import { cn } from '@/lib/utils';
 import { Camera, Upload, X, User, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
 import { ImageCropper } from '@/components/ui/image-cropper';
+import { api } from '@/services/api';
 
 interface PhotoUploadProps {
   label: string;
@@ -45,38 +45,19 @@ export function PhotoUpload({ label, sublabel, value, onChange, className, folde
   };
 
   const handleUpload = async (croppedImageBlob: Blob) => {
-    // If user is logged in, upload to storage
-    if (user) {
-      setIsUploading(true);
-      try {
-        const fileExt = 'jpg'; // Cropped image is jpeg
-        const fileName = `${user.id}/${folder}/${Date.now()}.${fileExt}`;
+    setIsUploading(true);
+    try {
+      // Create a File object from the Blob for the API
+      const file = new File([croppedImageBlob], 'photo.jpg', { type: 'image/jpeg' });
+      const data = await api.uploadFile(file);
 
-        const { error: uploadError } = await supabase.storage
-          .from('wedding-photos')
-          .upload(fileName, croppedImageBlob, { upsert: true });
-
-        if (uploadError) throw uploadError;
-
-        const { data: { publicUrl } } = supabase.storage
-          .from('wedding-photos')
-          .getPublicUrl(fileName);
-
-        onChange(publicUrl);
-        toast.success('Photo uploaded!');
-      } catch (error) {
-        console.error('Upload error:', error);
-        toast.error('Failed to upload photo');
-      } finally {
-        setIsUploading(false);
-      }
-    } else {
-      // Fallback to base64 for non-logged-in users (setup preview)
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        onChange(reader.result as string);
-      };
-      reader.readAsDataURL(croppedImageBlob);
+      onChange(data.url);
+      toast.success('Photo uploaded!');
+    } catch (error) {
+      console.error('Upload error:', error);
+      toast.error('Failed to upload photo');
+    } finally {
+      setIsUploading(false);
     }
   };
 
@@ -108,18 +89,8 @@ export function PhotoUpload({ label, sublabel, value, onChange, className, folde
 
   const handleRemove = async (e: React.MouseEvent) => {
     e.stopPropagation();
-
-    // If it's a storage URL, try to delete from storage
-    if (value && value.includes('wedding-photos') && user) {
-      try {
-        const path = value.split('wedding-photos/')[1];
-        if (path) {
-          await supabase.storage.from('wedding-photos').remove([path]);
-        }
-      } catch (error) {
-        console.error('Error deleting photo:', error);
-      }
-    }
+    // Local delete not implemented yet, just clearing the value
+    // In future: Call DELETE /api/upload with filename
 
     onChange(undefined);
     if (inputRef.current) {
