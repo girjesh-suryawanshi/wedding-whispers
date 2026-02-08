@@ -27,6 +27,31 @@ export default function PublicInvitation() {
     }
   }, [shareToken, fetchPublicWedding]);
 
+  const [isPlaying, setIsPlaying] = useState(false);
+  const audioRef = React.useRef<HTMLAudioElement>(null);
+
+  const toggleMusic = () => {
+    if (audioRef.current) {
+      if (isPlaying) {
+        audioRef.current.pause();
+      } else {
+        audioRef.current.play();
+      }
+      setIsPlaying(!isPlaying);
+    }
+  };
+
+  useEffect(() => {
+    if (hasOpened && audioRef.current && !isPlaying) {
+      // Attempt to play if not already playing (though onOpenStart should have handled it)
+      const playPromise = audioRef.current.play();
+      if (playPromise !== undefined) {
+        playPromise.then(() => setIsPlaying(true))
+          .catch(error => console.log("Auto-play prevented:", error));
+      }
+    }
+  }, [hasOpened]);
+
   // Loading state handling
   if (contextLoading && !wedding) {
     return (
@@ -57,10 +82,40 @@ export default function PublicInvitation() {
 
   return (
     <>
+      <audio
+        ref={audioRef}
+        src="/music.mp3"
+        loop
+        preload="auto"
+        onError={(e) => console.error("Audio failed to load:", e)}
+      />
+
+      {/* Mute/Unmute Button */}
+      {hasOpened && (
+        <button
+          onClick={toggleMusic}
+          className="fixed top-4 right-4 z-50 p-3 bg-white/80 backdrop-blur-sm rounded-full shadow-lg border border-amber-200 text-amber-800 hover:bg-white transition-all hover:scale-105"
+          title={isPlaying ? "Mute Music" : "Play Music"}
+          aria-label={isPlaying ? "Mute Music" : "Play Music"}
+        >
+          {isPlaying ? "🔊" : "🔇"}
+        </button>
+      )}
+
       {!hasOpened && (
         <WeddingEnvelope
           wedding={wedding}
           onOpenComplete={() => setHasOpened(true)}
+          onOpenStart={() => {
+            if (audioRef.current) {
+              audioRef.current.volume = 0.5;
+              const playPromise = audioRef.current.play();
+              if (playPromise !== undefined) {
+                playPromise.then(() => setIsPlaying(true))
+                  .catch(err => console.error("Audio playback error:", err));
+              }
+            }
+          }}
         />
       )}
 

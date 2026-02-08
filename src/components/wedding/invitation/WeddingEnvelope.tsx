@@ -6,9 +6,10 @@ import { Heart } from 'lucide-react';
 interface WeddingEnvelopeProps {
     wedding: WeddingDetails;
     onOpenComplete: () => void;
+    onOpenStart?: () => void;
 }
 
-export function WeddingEnvelope({ wedding, onOpenComplete }: WeddingEnvelopeProps) {
+export function WeddingEnvelope({ wedding, onOpenComplete, onOpenStart }: WeddingEnvelopeProps) {
     const [isOpen, setIsOpen] = useState(false);
     const [showContent, setShowContent] = useState(false);
     const [isFadingOut, setIsFadingOut] = useState(false);
@@ -16,6 +17,8 @@ export function WeddingEnvelope({ wedding, onOpenComplete }: WeddingEnvelopeProp
     const handleOpen = () => {
         if (isOpen) return;
         setIsOpen(true);
+        // Trigger music start immediately
+        if (onOpenStart) onOpenStart();
 
         // Sequence:
         // 1. Envelope opens (0s)
