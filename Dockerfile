@@ -2,7 +2,8 @@
 FROM node:20-alpine AS frontend-builder
 WORKDIR /app
 COPY package*.json ./
-RUN npm ci
+# Using npm install instead of npm ci to be more forgiving of lockfile mismatches
+RUN npm install
 COPY . .
 RUN npm run build
 
@@ -13,7 +14,7 @@ WORKDIR /app
 # Copy backend package.json and install dependencies
 COPY server/package*.json ./server/
 WORKDIR /app/server
-RUN npm ci --production
+RUN npm install --production
 
 # Copy backend code
 COPY server/ ./
