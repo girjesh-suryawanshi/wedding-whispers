@@ -1,85 +1,28 @@
 import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
-import { supabase } from '@/integrations/supabase/client';
+import { useWedding } from '@/contexts/WeddingContext';
 import { WeddingDetails, WeddingEvent, EventType } from '@/types/wedding';
 import { PublicCountdownDisplay } from '@/components/wedding/countdown/PublicCountdownDisplay';
 import { Loader2, Heart } from 'lucide-react';
 
 export default function PublicCountdown() {
   const { shareToken } = useParams<{ shareToken: string }>();
-  const [wedding, setWedding] = useState<WeddingDetails | null>(null);
-  const [loading, setLoading] = useState(true);
+  const { wedding, setWedding, fetchPublicWedding, loading: contextLoading } = useWedding();
   const [error, setError] = useState<string | null>(null);
 
+
+
   useEffect(() => {
-    async function fetchWedding() {
-      if (!shareToken) {
-        setError('Invalid countdown link');
-        setLoading(false);
-        return;
-      }
-
-      try {
-        // Fetch wedding using the security definer function
-        const { data: weddingData, error: weddingError } = await supabase
-          .rpc('get_wedding_by_share_token', { token: shareToken });
-
-        if (weddingError) throw weddingError;
-
-        if (!weddingData || weddingData.length === 0) {
-          setError('Countdown not found');
-          setLoading(false);
-          return;
-        }
-
-        const w = weddingData[0];
-
-        // Fetch events
-        const { data: eventsData, error: eventsError } = await supabase
-          .rpc('get_wedding_events_by_wedding_id', { wedding_uuid: w.id });
-
-        if (eventsError) throw eventsError;
-
-        const events: WeddingEvent[] = (eventsData || []).map((e: any) => ({
-          id: e.id,
-          type: e.event_type as EventType,
-          customName: e.custom_name || undefined,
-          date: new Date(e.event_date),
-          time: e.event_time,
-          venue: e.venue || undefined,
-          description: e.description || undefined,
-        }));
-
-        const weddingDetails: WeddingDetails = {
-          id: w.id,
-          brideName: w.bride_name,
-          groomName: w.groom_name,
-          weddingDate: new Date(w.wedding_date),
-          venue: w.venue,
-          bridePhoto: w.bride_photo || undefined,
-          groomPhoto: w.groom_photo || undefined,
-          brideParents: w.bride_parents || undefined,
-          groomParents: w.groom_parents || undefined,
-          rsvpPhone: w.rsvp_phone || undefined,
-          rsvpEmail: w.rsvp_email || undefined,
-          customMessage: w.custom_message || undefined,
-          events,
-          createdAt: new Date(),
-        };
-
-        setWedding(weddingDetails);
-      } catch (err) {
-        console.error('Error fetching countdown:', err);
+    if (shareToken) {
+      fetchPublicWedding(shareToken).catch(() => {
         setError('Failed to load countdown');
-      } finally {
-        setLoading(false);
-      }
+      });
+    } else {
+      setError('Invalid countdown link');
     }
+  }, [shareToken, fetchPublicWedding]);
 
-    fetchWedding();
-  }, [shareToken]);
-
-  if (loading) {
+  if (contextLoading && !wedding) {
     return (
       <div className="min-h-screen bg-gradient-blush flex items-center justify-center">
         <div className="text-center">

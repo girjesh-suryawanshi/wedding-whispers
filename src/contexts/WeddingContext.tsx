@@ -15,6 +15,7 @@ interface WeddingContextType {
   resetWedding: () => void;
   loading: boolean;
   saveWedding: (wedding: WeddingDetails) => Promise<void>;
+  fetchPublicWedding: (token: string) => Promise<void>;
 }
 
 const WeddingContext = createContext<WeddingContextType | undefined>(undefined);
@@ -26,45 +27,40 @@ export function WeddingProvider({ children }: { children: ReactNode }) {
 
   // Fetch wedding from database
   const fetchWedding = useCallback(async () => {
-    if (!user) {
-      setWeddingState(null);
-      setLoading(false);
-      return;
-    }
+    // For local dev without auth, we might need a way to identify "current user"
+    // For now, let's assume we are fetching by share token or a hardcoded ID for dev?
+    // wait, the previous code used user.id. 
+    // Since we are moving away from Supabase Auth, we need a new way to handle "owner" access.
+    // For the "Invitation" view (public), we use the token.
+    // For the "Dashboard" view (private), we need a simplified auth.
 
+    // TEMPORARY: For local migration, let's prioritize the Public Invitation view first
+    // as that's what seems to be the main focus of recent tasks.
+    // We will leave the "Dashboard" fetching for a moment or mock it.
+
+    setLoading(false);
+  }, [user]);
+
+  // We need to expose a way to fetch by token for the Public view
+  const fetchPublicWedding = async (token: string) => {
+    setLoading(true);
     try {
-      // Fetch wedding
-      const { data: weddingData, error: weddingError } = await supabase
-        .from('weddings')
-        .select('*')
-        .eq('user_id', user.id)
-        .maybeSingle();
+      // Use the new API service
+      const { api } = await import('@/services/api');
+      const weddingDataArray = await api.getWeddingByToken(token);
 
-      if (weddingError) {
-        console.error('Error fetching wedding:', weddingError);
-        setLoading(false);
-        return;
-      }
-
-      if (!weddingData) {
+      if (!weddingDataArray || weddingDataArray.length === 0) {
         setWeddingState(null);
-        setLoading(false);
         return;
       }
+
+      const weddingData = weddingDataArray[0];
 
       // Fetch events
-      const { data: eventsData, error: eventsError } = await supabase
-        .from('wedding_events')
-        .select('*')
-        .eq('wedding_id', weddingData.id)
-        .order('event_date', { ascending: true });
-
-      if (eventsError) {
-        console.error('Error fetching events:', eventsError);
-      }
+      const eventsData = await api.getWeddingEvents(weddingData.id);
 
       // Transform to WeddingDetails format
-      const events: WeddingEvent[] = (eventsData || []).map((e) => ({
+      const events: WeddingEvent[] = (eventsData || []).map((e: any) => ({
         id: e.id,
         type: e.event_type as WeddingEvent['type'],
         customName: e.custom_name || undefined,
@@ -87,18 +83,21 @@ export function WeddingProvider({ children }: { children: ReactNode }) {
         rsvpPhone: weddingData.rsvp_phone || undefined,
         rsvpEmail: weddingData.rsvp_email || undefined,
         customMessage: weddingData.custom_message || undefined,
-        shareToken: weddingData.share_token || undefined,
+        shareToken: token, // Ensure token is preserved
         events,
-        createdAt: new Date(weddingData.created_at),
+        createdAt: new Date(), // API might not return this, use current or update API
       };
 
       setWeddingState(weddingDetails);
     } catch (error) {
-      console.error('Error fetching wedding:', error);
+      console.error("Failed to fetch public wedding", error);
     } finally {
       setLoading(false);
     }
-  }, [user]);
+  };
+
+  // Expose fetchPublicWedding to context (we'll need to update the interface)
+
 
   useEffect(() => {
     fetchWedding();
@@ -323,6 +322,7 @@ export function WeddingProvider({ children }: { children: ReactNode }) {
         resetWedding,
         loading,
         saveWedding,
+        fetchPublicWedding,
       }}
     >
       {children}

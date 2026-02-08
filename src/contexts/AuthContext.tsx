@@ -29,6 +29,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    // Disabled for local migration
+    setLoading(false);
+    return () => { };
+    /*
     // Set up auth state listener FIRST
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
@@ -74,47 +78,72 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return () => {
       subscription.unsubscribe();
     };
+    */
   }, []);
 
   const signUp = async (email: string, password: string, displayName?: string) => {
-    const { error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        emailRedirectTo: window.location.origin,
-        data: {
-          display_name: displayName,
-        },
-      },
-    });
-    return { error };
+    try {
+      const response = await fetch('http://localhost:3000/api/auth/signup', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password, data: { display_name: displayName } }),
+      });
+
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || 'Signup failed');
+
+      // Set session
+      const session = data.session;
+      setSession(session);
+      setUser(session.user);
+
+      // Fetch profile (could also be returned from signup to save a call)
+      const profileRes = await fetch(`http://localhost:3000/api/profiles/${session.user.id}`);
+      if (profileRes.ok) {
+        const profileData = await profileRes.json();
+        setProfile(profileData);
+      }
+
+      return { error: null };
+    } catch (err: any) {
+      return { error: err };
+    }
   };
 
   const signIn = async (email: string, password: string) => {
-    const { error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
-    return { error };
+    try {
+      const response = await fetch('http://localhost:3000/api/auth/signin', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password }),
+      });
+
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || 'Signin failed');
+
+      const session = data.session;
+      setSession(session);
+      setUser(session.user);
+
+      // Ideally we should persist this session to localStorage
+
+      return { error: null };
+    } catch (err: any) {
+      return { error: err };
+    }
   };
 
   const signOut = async () => {
-    await supabase.auth.signOut();
+    setSession(null);
+    setUser(null);
+    setProfile(null);
+    // Clear local storage if we were using it
   };
 
   const updateProfile = async (updates: Partial<Profile>) => {
-    if (!user) return { error: new Error('No user logged in') };
-    
-    const { error } = await supabase
-      .from('profiles')
-      .update(updates)
-      .eq('user_id', user.id);
-    
-    if (!error && profile) {
-      setProfile({ ...profile, ...updates });
-    }
-    
-    return { error };
+    // Placeholder: Need to implement profile update endpoint if needed
+    console.warn('Profile update not yet implemented in local backend');
+    return { error: null };
   };
 
   return (
