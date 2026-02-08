@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode, useCallback } from 'react';
 import { WeddingDetails, WeddingEvent } from '@/types/wedding';
-import { supabase } from '@/integrations/supabase/client';
+
 import { useAuth } from './AuthContext';
 
 interface WeddingContextType {
@@ -246,12 +246,8 @@ export function WeddingProvider({ children }: { children: ReactNode }) {
     if (!wedding || !user) return;
 
     try {
-      const { error } = await supabase
-        .from('weddings')
-        .delete()
-        .eq('id', wedding.id);
-
-      if (error) throw error;
+      const { api } = await import('@/services/api');
+      await api.deleteWedding(wedding.id);
       setWeddingState(null);
     } catch (error) {
       console.error('Error resetting wedding:', error);

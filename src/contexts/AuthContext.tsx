@@ -1,6 +1,15 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { User, Session } from '@supabase/supabase-js';
-import { supabase } from '@/integrations/supabase/client';
+
+// Define local types matching our backend response
+export interface User {
+  id: string;
+  email?: string;
+}
+
+export interface Session {
+  access_token: string;
+  user: User;
+}
 
 interface Profile {
   id: string;
@@ -29,56 +38,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Disabled for local migration
+    // Check for existing session in localStorage or just end loading
+    // For this migration, we'll start fresh each reload or you could implement token persistence
     setLoading(false);
-    return () => { };
-    /*
-    // Set up auth state listener FIRST
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
-        setSession(session);
-        setUser(session?.user ?? null);
-        
-        if (session?.user) {
-          // Fetch profile with setTimeout to avoid blocking
-          setTimeout(async () => {
-            const { data } = await supabase
-              .from('profiles')
-              .select('*')
-              .eq('user_id', session.user.id)
-              .maybeSingle();
-            setProfile(data);
-          }, 0);
-        } else {
-          setProfile(null);
-        }
-      }
-    );
-
-    // THEN get initial session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      setUser(session?.user ?? null);
-      
-      if (session?.user) {
-        supabase
-          .from('profiles')
-          .select('*')
-          .eq('user_id', session.user.id)
-          .maybeSingle()
-          .then(({ data }) => {
-            setProfile(data);
-            setLoading(false);
-          });
-      } else {
-        setLoading(false);
-      }
-    });
-
-    return () => {
-      subscription.unsubscribe();
-    };
-    */
   }, []);
 
   const signUp = async (email: string, password: string, displayName?: string) => {

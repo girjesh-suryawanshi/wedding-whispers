@@ -47,5 +47,13 @@ export const api = {
         const response = await fetch(`${API_BASE_URL}/weddings/user/${userId}`);
         if (!response.ok) throw new Error('Failed to fetch user wedding');
         return await response.json();
+    },
+
+    deleteWedding: async (weddingId: string) => {
+        const response = await fetch(`${API_BASE_URL}/weddings/${weddingId}`, {
+            method: 'DELETE',
+        });
+        if (!response.ok) throw new Error('Failed to delete wedding');
+        return await response.json();
     }
 };
