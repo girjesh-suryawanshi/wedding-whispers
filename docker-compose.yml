@@ -1,0 +1,33 @@
+services:
+  app:
+    container_name: wedding-whispers-app
+    build: .
+    ports:
+      - "4008:3000"
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
+      - DATABASE_URL=postgres://wedding_user:wedding_password@db:5432/wedding_whispers_db
+    depends_on:
+      - db
+    volumes:
+      - ./uploads:/app/server/uploads
+    restart: always
+
+  db:
+    container_name: wedding-whispers-db
+    image: postgres:15-alpine
+    environment:
+      - POSTGRES_USER=wedding_user
+      - POSTGRES_PASSWORD=wedding_password
+      - POSTGRES_DB=wedding_whispers_db
+    ports:
+      - "5434:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      # Mount the initialization script if we had one, but we'll use schema.sql manually or via entrypoint
+      - ./server/schema.sql:/docker-entrypoint-initdb.d/init.sql
+    restart: always
+
+volumes:
+  postgres_data:

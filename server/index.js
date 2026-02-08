@@ -17,6 +17,9 @@ app.use(express.json());
 // Serve static files from uploads directory
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
+// Serve frontend static files
+app.use(express.static(path.join(__dirname, '../dist')));
+
 // Configure Multer
 const storage = multer.diskStorage({
     destination: function (req, file, cb) {
@@ -328,6 +331,15 @@ app.get('/api/weddings/user/:userId', asyncHandler(async (req, res) => {
 app.use((err, req, res, next) => {
     console.error(err.stack);
     res.status(500).json({ error: 'Something went wrong!' });
+});
+
+// Handle SPA routing - return index.html for any unknown non-API routes
+app.get('*', (req, res) => {
+    // Don't intercept API routes (though they should be handled above)
+    if (req.path.startsWith('/api')) {
+        return res.status(404).json({ error: 'API endpoint not found' });
+    }
+    res.sendFile(path.join(__dirname, '../dist/index.html'));
 });
 
 app.listen(port, () => {
