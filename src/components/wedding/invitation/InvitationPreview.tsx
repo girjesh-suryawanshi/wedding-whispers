@@ -174,9 +174,9 @@ export function InvitationPreviewBase({ wedding, template, language, cardRef }: 
         {/* DATE BOX */}
         <div className="flex-none pt-2 pb-4 w-full space-y-6">
           <div className="flex justify-center">
-            <div className="flex items-center justify-between px-6 py-3 rounded-2xl border-2 border-amber-300 bg-white min-w-[300px] shadow-sm">
+            <div className="flex items-center justify-center gap-8 px-6 py-3 rounded-2xl border-2 border-amber-300 bg-white min-w-[280px] shadow-sm">
 
-              <span className="text-[11px] font-bold text-gray-600">
+              <span className="text-xs font-bold text-gray-600 tracking-wider">
                 {format(new Date(wedding.weddingDate), "EEEE").toUpperCase()}
               </span>
 
@@ -184,14 +184,10 @@ export function InvitationPreviewBase({ wedding, template, language, cardRef }: 
                 <span className="text-3xl font-bold text-gray-800 leading-none">
                   {format(new Date(wedding.weddingDate), "dd")}
                 </span>
-                <span className="text-[9px] font-bold text-green-700">
+                <span className="text-[10px] font-bold text-green-700 uppercase tracking-widest">
                   {format(new Date(wedding.weddingDate), "MMM yyyy")}
                 </span>
               </div>
-
-              <span className="text-[11px] font-bold text-gray-600">
-                {format(new Date(wedding.weddingDate), "h:mm a")}
-              </span>
             </div>
           </div>
 

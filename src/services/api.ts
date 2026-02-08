@@ -1,4 +1,5 @@
-const API_BASE_URL = 'http://localhost:3001/api';
+// Use relative path for production (Docker) or localhost for dev if not proxied
+const API_BASE_URL = '/api';
 
 export const api = {
     getWeddingByToken: async (token: string) => {
