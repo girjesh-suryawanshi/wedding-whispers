@@ -78,8 +78,8 @@ export default function PublicInvitation() {
           <div className="mt-8">
             <InvitationPreview
               wedding={wedding}
-              template={(wedding.template as any) || 'rajasthani'}
-              language={(wedding.language as any) || 'bilingual'}
+              template={(wedding.template as any) || 'garden'}
+              language={(wedding.language as any) || 'english'}
             />
           </div>
 

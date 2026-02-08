@@ -195,7 +195,7 @@ app.post('/api/weddings', asyncHandler(async (req, res) => {
             id, user_id, bride_name, groom_name, wedding_date, venue,
             bride_photo, groom_photo, bride_parents, groom_parents,
             rsvp_phone, rsvp_email, custom_message, share_token,
-            template || 'rajasthani', language || 'bilingual'
+            template || 'garden', language || 'english'
         ];
 
         const weddingRes = await client.query(weddingQuery, weddingValues);

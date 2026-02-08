@@ -189,27 +189,13 @@ export function WeddingProvider({ children }: { children: ReactNode }) {
     setWeddingState(updatedWedding);
 
     try {
-      const { error } = await supabase
-        .from('weddings')
-        .update({
-          bride_name: updatedWedding.brideName,
-          groom_name: updatedWedding.groomName,
-          wedding_date: updatedWedding.weddingDate.toISOString(),
-          venue: updatedWedding.venue,
-          bride_photo: updatedWedding.bridePhoto || null,
-          groom_photo: updatedWedding.groomPhoto || null,
-          bride_parents: updatedWedding.brideParents || null,
-          groom_parents: updatedWedding.groomParents || null,
-          rsvp_phone: updatedWedding.rsvpPhone || null,
-          rsvp_email: updatedWedding.rsvpEmail || null,
-          custom_message: updatedWedding.customMessage || null,
-          share_token: updatedWedding.shareToken || null,
-        })
-        .eq('id', wedding.id);
-
-      if (error) throw error;
+      // Use the centralized saveWedding function to ensure consistency
+      // This handles all fields including the new 'template' and 'language'
+      // and communicates with the backend API instead of Supabase directly
+      await saveWedding(updatedWedding);
     } catch (error) {
       console.error('Error updating wedding:', error);
+      // Revert local state on error if needed, but for now just log
     }
   };
 
