@@ -33,13 +33,13 @@ export function InvitationPreviewBase({ wedding, template, language, cardRef }: 
     >
       <TemplateDecorations template={template} />
 
-      {/* MAIN CONTENT */}
-      <div className="relative h-full flex flex-col items-center pt-8 pb-6 px-4 z-10 text-center font-sans">
+      {/* MAIN CONTENT - Scrollable if content overflows */}
+      <div className="relative h-full flex flex-col items-center pt-6 pb-4 px-4 z-10 text-center font-sans overflow-y-auto scrollbar-hide">
 
         {/* HEADER */}
-        <div className="flex-none mb-6 space-y-2">
+        <div className="flex-none mb-4 space-y-1">
           {(language === 'hindi' || language === 'bilingual') && (
-            <div className="mb-2">
+            <div className="mb-1">
               <span
                 className={cn(
                   "text-xl font-hindi font-medium tracking-wide",
@@ -51,7 +51,7 @@ export function InvitationPreviewBase({ wedding, template, language, cardRef }: 
             </div>
           )}
 
-          <div className="space-y-1 opacity-80">
+          <div className="space-y-0.5 opacity-80">
             {(language === 'english' || language === 'bilingual') && (
               <p className={cn(
                 "text-[10px] uppercase tracking-[0.25em] font-medium",
@@ -73,15 +73,15 @@ export function InvitationPreviewBase({ wedding, template, language, cardRef }: 
         </div>
 
         {/* COUPLE SECTION (SAFE + BALANCED) */}
-        {/* <div className="flex-1 w-full flex flex-col justify-center items-center py-1 space-y-6"> */}
-        <div className="flex-1 w-full flex flex-col justify-center items-center py-1 space-y-5">
+        {/* Compacted spacing for mobile safety */}
+        <div className="flex-none w-full flex flex-col justify-center items-center py-1 space-y-3">
 
 
           {/* Groom Row */}
           <div className="flex items-center w-full px-6">
             <Avatar
               className={cn(
-                "w-24 h-24 border-[3px] shadow-xl shrink-0",
+                "w-20 h-20 border-[3px] shadow-xl shrink-0",
                 isLightTemplate
                   ? "border-amber-400 ring-amber-200"
                   : "border-blue-400 ring-blue-300"
@@ -99,9 +99,9 @@ export function InvitationPreviewBase({ wedding, template, language, cardRef }: 
               )}
             </Avatar>
 
-            <div className="flex-1 text-left pl-6">
+            <div className="flex-1 text-left pl-4">
               <h2 className={cn(
-                "font-serif italic bold text-3xl leading-tight tracking-tight",
+                "font-serif italic bold text-2xl leading-tight tracking-tight",
                 config.textColor
               )}>
                 {wedding.groomName.split(' ')[0]}
@@ -111,18 +111,18 @@ export function InvitationPreviewBase({ wedding, template, language, cardRef }: 
 
           {/* AMPERSAND */}
           <div className="flex items-center justify-center opacity-60">
-            <div className={cn("h-px w-20 bg-current", config.accentColor)}></div>
-            <span className={cn("font-serif italic text-2xl mx-4", config.accentColor)}>
+            <div className={cn("h-px w-16 bg-current", config.accentColor)}></div>
+            <span className={cn("font-serif italic text-xl mx-3", config.accentColor)}>
               &
             </span>
-            <div className={cn("h-px w-20 bg-current", config.accentColor)}></div>
+            <div className={cn("h-px w-16 bg-current", config.accentColor)}></div>
           </div>
 
           {/* Bride Row */}
           <div className="flex items-center w-full px-6 justify-end">
-            <div className="flex-1 text-right pr-6">
+            <div className="flex-1 text-right pr-4">
               <h2 className={cn(
-                "font-serif italic bold text-3xl leading-tight tracking-tight",
+                "font-serif italic bold text-2xl leading-tight tracking-tight",
                 config.textColor
               )}>
                 {wedding.brideName.split(' ')[0]}
@@ -131,7 +131,7 @@ export function InvitationPreviewBase({ wedding, template, language, cardRef }: 
 
             <Avatar
               className={cn(
-                "w-24 h-24 border-[3px] shadow-xl shrink-0",
+                "w-20 h-20 border-[3px] shadow-xl shrink-0",
                 isLightTemplate
                   ? "border-amber-400 ring-amber-200"
                   : "border-blue-400 ring-blue-300"
@@ -152,18 +152,18 @@ export function InvitationPreviewBase({ wedding, template, language, cardRef }: 
         </div>
 
         {/* --- Invitation Message (Stylish & Professional) --- */}
-        <div className="flex-none w-full text-center my-2">
+        <div className="flex-none w-full text-center my-3">
           {(language === 'english' || language === 'bilingual') && (
             <div className="flex flex-col items-center">
-              <div className="w-12 h-[1px] bg-gray-300 mb-2"></div>
+              <div className="w-12 h-[1px] bg-gray-300 mb-1.5"></div>
 
-              <p className="text-[11px] italic text-gray-600 leading-relaxed tracking-wide px-6">
+              <p className="text-[10px] italic text-gray-600 leading-relaxed tracking-wide px-6">
                 Cordially invite you to join the occasion of their joyous
                 <br />
                 <span className="font-medium">commitment on</span>
               </p>
 
-              <div className="w-12 h-[1px] bg-gray-300 mt-2"></div>
+              <div className="w-12 h-[1px] bg-gray-300 mt-1.5"></div>
             </div>
           )}
         </div>
@@ -172,9 +172,9 @@ export function InvitationPreviewBase({ wedding, template, language, cardRef }: 
 
 
         {/* DATE BOX */}
-        <div className="flex-none pt-2 pb-4 w-full space-y-6">
+        <div className="flex-none pt-1 pb-3 w-full space-y-4">
           <div className="flex justify-center">
-            <div className="flex items-center justify-center gap-8 px-6 py-3 rounded-2xl border-2 border-amber-300 bg-white min-w-[280px] shadow-sm">
+            <div className="flex items-center justify-center gap-8 px-6 py-2.5 rounded-2xl border-2 border-amber-300 bg-white min-w-[260px] shadow-sm">
 
               <span className="text-xs font-bold text-gray-600 tracking-wider">
                 {format(new Date(wedding.weddingDate), "EEEE").toUpperCase()}
@@ -193,7 +193,7 @@ export function InvitationPreviewBase({ wedding, template, language, cardRef }: 
 
           {/* VENUE */}
           <div className="space-y-1">
-            <p className="text-[10px] uppercase tracking-[0.2em] text-gray-500 font-medium">
+            <p className="text-[9px] uppercase tracking-[0.2em] text-gray-500 font-medium">
               AT
             </p>
             <h3 className="text-sm font-bold tracking-wide uppercase px-4 leading-relaxed font-serif text-gray-900">
@@ -232,7 +232,7 @@ export function InvitationPreviewBase({ wedding, template, language, cardRef }: 
 
 
         {/* FOOTER */}
-        <div className="pb-4 w-full">
+        <div className="pb-4 w-full mt-auto">
           <div className="flex items-center justify-center gap-3">
             <span className="w-2 h-2 rounded-full bg-pink-300"></span>
             <span className="w-2 h-2 rounded-full bg-pink-200"></span>
