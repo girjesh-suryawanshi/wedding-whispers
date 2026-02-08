@@ -101,7 +101,7 @@ export function InvitationPreview({ wedding, template, language, cardRef }: Invi
 
             <div className="flex-1 text-left pl-6">
               <h2 className={cn(
-                "font-serif text-4xl leading-tight tracking-tight",
+                "font-serif italic bold text-3xl leading-tight tracking-tight",
                 config.textColor
               )}>
                 {wedding.groomName.split(' ')[0]}
@@ -122,7 +122,7 @@ export function InvitationPreview({ wedding, template, language, cardRef }: Invi
           <div className="flex items-center w-full px-6 justify-end">
             <div className="flex-1 text-right pr-6">
               <h2 className={cn(
-                "font-serif text-4xl leading-tight tracking-tight",
+                "font-serif italic bold text-3xl leading-tight tracking-tight",
                 config.textColor
               )}>
                 {wedding.brideName.split(' ')[0]}
@@ -150,6 +150,26 @@ export function InvitationPreview({ wedding, template, language, cardRef }: Invi
             </Avatar>
           </div>
         </div>
+
+        {/* --- Invitation Message (Stylish & Professional) --- */}
+        <div className="flex-none w-full text-center my-2">
+          {(language === 'english' || language === 'bilingual') && (
+            <div className="flex flex-col items-center">
+              <div className="w-12 h-[1px] bg-gray-300 mb-2"></div>
+
+              <p className="text-[11px] italic text-gray-600 leading-relaxed tracking-wide px-6">
+                Cordially invite you to join the occasion of their joyous
+                <br />
+                <span className="font-medium">commitment on</span>
+              </p>
+
+              <div className="w-12 h-[1px] bg-gray-300 mt-2"></div>
+            </div>
+          )}
+        </div>
+
+
+
 
         {/* DATE BOX */}
         <div className="flex-none pt-2 pb-4 w-full space-y-6">

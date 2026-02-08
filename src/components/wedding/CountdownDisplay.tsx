@@ -29,10 +29,10 @@ export function CountdownDisplay() {
   const theme = selectedTheme;
 
   // Determine floral border variant from theme
-  const floralVariant = theme.floralBorder.includes('gold') 
-    ? 'gold' 
-    : theme.floralBorder.includes('cream') 
-      ? 'cream' 
+  const floralVariant = theme.floralBorder.includes('gold')
+    ? 'gold'
+    : theme.floralBorder.includes('cream')
+      ? 'cream'
       : 'maroon';
 
   // Determine texture type from theme
@@ -44,7 +44,7 @@ export function CountdownDisplay() {
     const calculateCountdown = () => {
       const now = new Date();
       const weddingDate = new Date(wedding.weddingDate);
-      
+
       if (weddingDate <= now) {
         setIsPast(true);
         return;
@@ -97,7 +97,7 @@ export function CountdownDisplay() {
       link.download = `${wedding.brideName}-${wedding.groomName}-countdown-${daysRemaining}days.png`;
       link.href = canvas.toDataURL('image/png', 1.0);
       link.click();
-      
+
       toast.success('Status image downloaded!');
     } catch (error) {
       console.error('Download error:', error);
@@ -120,10 +120,10 @@ export function CountdownDisplay() {
       >
         {/* Texture Overlay */}
         <TextureOverlay texture={textureType} />
-        
+
         {/* Pattern Overlay */}
         <div className={cn("absolute inset-0 opacity-20", theme.pattern)} />
-        
+
         {/* Floral Border */}
         <FloralBorder variant={floralVariant} />
 
@@ -265,21 +265,21 @@ export function CountdownDisplay() {
           )}
 
           {/* Theme Label */}
-          <div className="text-center pt-4">
+          {/* <div className="text-center pt-4">
             <p className={cn("text-[10px] uppercase tracking-wider opacity-50", theme.textColor)}>
               Today's Theme: {theme.name}
             </p>
-          </div>
+          </div> */}
         </div>
       </div>
 
       {/* Action Buttons - Outside the card */}
       <div className="text-center space-y-3">
         <div className="flex items-center justify-center gap-3 flex-wrap">
-          <Button 
+          <Button
             onClick={handleDownload}
             disabled={isDownloading}
-            variant="secondary" 
+            variant="secondary"
             className="bg-secondary hover:bg-secondary/90 text-secondary-foreground shadow-gold"
           >
             {isDownloading ? (
@@ -289,7 +289,7 @@ export function CountdownDisplay() {
             )}
             {isDownloading ? 'Generating...' : 'Download Status'}
           </Button>
-          
+
           <ShareCountdown shareToken={wedding.shareToken} />
         </div>
         <p className="text-xs text-muted-foreground">
@@ -299,7 +299,7 @@ export function CountdownDisplay() {
 
       {/* Theme Selector */}
       <div className="mt-8 pt-8 border-t">
-        <ThemeSelector 
+        <ThemeSelector
           selectedTheme={theme}
           onThemeSelect={setSelectedTheme}
         />
