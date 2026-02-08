@@ -219,24 +219,11 @@ export function WeddingProvider({ children }: { children: ReactNode }) {
     const events = [...wedding.events, event].sort(
       (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()
     );
-    setWeddingState({ ...wedding, events });
 
-    try {
-      const { error } = await supabase.from('wedding_events').insert({
-        id: event.id,
-        wedding_id: wedding.id,
-        event_type: event.type,
-        custom_name: event.customName || null,
-        event_date: event.date instanceof Date ? event.date.toISOString() : event.date,
-        event_time: event.time,
-        venue: event.venue || null,
-        description: event.description || null,
-      });
-
-      if (error) throw error;
-    } catch (error) {
-      console.error('Error adding event:', error);
-    }
+    // Update local state and save to backend
+    const updatedWedding = { ...wedding, events };
+    setWeddingState(updatedWedding);
+    await saveWedding(updatedWedding);
   };
 
   const updateEvent = async (eventId: string, updates: Partial<WeddingEvent>) => {
@@ -245,53 +232,28 @@ export function WeddingProvider({ children }: { children: ReactNode }) {
     const events = wedding.events
       .map((e) => (e.id === eventId ? { ...e, ...updates } : e))
       .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
-    setWeddingState({ ...wedding, events });
 
-    try {
-      const updatedEvent = events.find((e) => e.id === eventId);
-      if (!updatedEvent) return;
-
-      const { error } = await supabase
-        .from('wedding_events')
-        .update({
-          event_type: updatedEvent.type,
-          custom_name: updatedEvent.customName || null,
-          event_date: updatedEvent.date instanceof Date ? updatedEvent.date.toISOString() : updatedEvent.date,
-          event_time: updatedEvent.time,
-          venue: updatedEvent.venue || null,
-          description: updatedEvent.description || null,
-        })
-        .eq('id', eventId);
-
-      if (error) throw error;
-    } catch (error) {
-      console.error('Error updating event:', error);
-    }
+    const updatedWedding = { ...wedding, events };
+    setWeddingState(updatedWedding);
+    await saveWedding(updatedWedding);
   };
 
   const removeEvent = async (eventId: string) => {
     if (!wedding || !user) return;
 
-    setWeddingState({
-      ...wedding,
-      events: wedding.events.filter((e) => e.id !== eventId),
-    });
+    const events = wedding.events.filter((e) => e.id !== eventId);
 
-    try {
-      const { error } = await supabase
-        .from('wedding_events')
-        .delete()
-        .eq('id', eventId);
-
-      if (error) throw error;
-    } catch (error) {
-      console.error('Error removing event:', error);
-    }
+    const updatedWedding = { ...wedding, events };
+    setWeddingState(updatedWedding);
+    await saveWedding(updatedWedding);
   };
 
-  const reorderEvents = (events: WeddingEvent[]) => {
-    if (!wedding) return;
-    setWeddingState({ ...wedding, events });
+  const reorderEvents = async (events: WeddingEvent[]) => {
+    if (!wedding || !user) return;
+
+    const updatedWedding = { ...wedding, events };
+    setWeddingState(updatedWedding);
+    await saveWedding(updatedWedding);
   };
 
   const resetWedding = async () => {
