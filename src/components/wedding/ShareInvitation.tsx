@@ -72,8 +72,8 @@ export function ShareInvitation() {
 
     try {
       await navigator.share({
-        title: `${wedding.brideName} & ${wedding.groomName} Wedding Invitation`,
-        text: `You are cordially invited to the wedding of ${wedding.brideName} & ${wedding.groomName}`,
+        title: `${wedding.groomName} & ${wedding.brideName} Wedding Invitation`,
+        text: `You are cordially invited to the wedding of ${wedding.groomName} & ${wedding.brideName}`,
         url: shareUrl,
       });
     } catch (error) {

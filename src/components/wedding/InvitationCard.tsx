@@ -42,7 +42,7 @@ export function InvitationCard() {
       });
 
       const link = document.createElement('a');
-      link.download = `${wedding.brideName}-${wedding.groomName}-invitation.png`;
+      link.download = `${wedding.groomName}-${wedding.brideName}-invitation.png`;
       link.href = canvas.toDataURL('image/png', 1.0);
       link.click();
 

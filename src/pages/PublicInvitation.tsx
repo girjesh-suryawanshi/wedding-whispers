@@ -124,7 +124,7 @@ export default function PublicInvitation() {
           {/* Header */}
           <div className="text-center mb-6">
             <h1 className="font-display text-2xl text-foreground">
-              {wedding.brideName} & {wedding.groomName}
+              {wedding.groomName} & {wedding.brideName}
             </h1>
             <p className="text-sm text-muted-foreground">Wedding Invitation</p>
           </div>
