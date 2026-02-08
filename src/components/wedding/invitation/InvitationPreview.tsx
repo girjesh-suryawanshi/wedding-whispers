@@ -16,7 +16,7 @@ interface InvitationPreviewProps {
   cardRef?: React.RefObject<HTMLDivElement>;
 }
 
-export function InvitationPreview({ wedding, template, language, cardRef }: InvitationPreviewProps) {
+export function InvitationPreviewBase({ wedding, template, language, cardRef }: InvitationPreviewProps) {
   const config = TEMPLATE_CONFIGS[template];
   const isLightTemplate =
     template === 'mughal' || template === 'garden' || template === 'rajasthani';
@@ -256,3 +256,5 @@ export function InvitationPreview({ wedding, template, language, cardRef }: Invi
     </div>
   );
 }
+
+export const InvitationPreview = React.memo(InvitationPreviewBase);

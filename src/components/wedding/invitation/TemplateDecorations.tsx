@@ -157,7 +157,8 @@ export function GardenDecorations() {
         <div className="flex justify-around">
           {[...Array(7)].map((_, i) => (
             <div key={i} className="flex flex-col items-center" style={{ animationDelay: `${i * 0.1}s` }}>
-              <div className="w-px h-8 bg-gradient-to-b from-green-400 to-green-500" style={{ height: `${20 + Math.random() * 30}px` }} />
+              {/* Deterministic height based on index instead of random to prevent hydration mismatch and flickering */}
+              <div className="w-px h-8 bg-gradient-to-b from-green-400 to-green-500" style={{ height: `${20 + (i % 3) * 10 + (i % 2) * 5}px` }} />
               <div className={cn(
                 "w-3 h-3 rounded-full",
                 i % 3 === 0 ? "bg-white" : i % 3 === 1 ? "bg-rose-200" : "bg-pink-100"
